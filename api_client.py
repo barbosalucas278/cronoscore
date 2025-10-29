@@ -9,23 +9,23 @@ async def process_email(session, email, is_valid_source, api_key, endpoint, vali
     """
     start_time = time.time()
     url = f"{endpoint}?email={email}"
-    headers = {"x-api-key": api_key}
+    headers = {"x-mails-api-key": api_key}
 
     try:
         async with session.get(url, headers=headers) as response:
             duration = time.time() - start_time
             result_json = await response.json()
 
-            api_considers_valid = result_json.get("reason") == valid_reason_str
+            api_considers_valid = result_json.get("score") >= valid_reason_str and result_json.get("result") == "deliverable"
 
             if is_valid_source and api_considers_valid:
-                classification = "Verdadero Positivo"
+                classification = "Valido considerado valido"
             elif is_valid_source and not api_considers_valid:
-                classification = "Falso Negativo"
+                classification = "Valido considerado Invalido"
             elif not is_valid_source and api_considers_valid:
-                classification = "Falso Positivo"
+                classification = "Invalido considerado Valido"
             else:
-                classification = "Verdadero Negativo"
+                classification = "Invalido considerado Invalido"
 
             return {
                 "email": email,

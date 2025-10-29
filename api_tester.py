@@ -10,8 +10,8 @@ from collections import Counter
 # Constantes Configurables
 # Estas son las constantes que el usuario mencionó que cambiaría manualmente si fuera necesario.
 # Sin embargo, también se pueden sobrescribir a través de argumentos de línea de comandos.
-API_ENDPOINT = "https://api.example.com/validate"
-API_KEY = "DEFAULT_API_KEY"
+API_ENDPOINT = "https://api.mails.so/v1/validate"
+API_KEY = "0b90acda-a5ef-497f-8e39-f97974682047"
 REQUESTS_PER_SECOND = 16
 VALID_REASON = "valid_email"  # La 'reason' que indica un email válido
 
@@ -29,7 +29,7 @@ async def process_email(session, email, is_valid_source, api_key, endpoint, vali
     """
     start_time = time.time()
     url = f"{endpoint}?email={email}"
-    headers = {"x-api-key": api_key}
+    headers = {"x-mails-api-key": api_key}
 
     try:
         async with session.get(url, headers=headers) as response:

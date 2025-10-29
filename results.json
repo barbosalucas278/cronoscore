@@ -1,144 +1,97 @@
 {
     "summary": {
-        "total_requests": 20,
-        "valid_source_emails": 10,
+        "total_requests": 12,
+        "valid_source_emails": 2,
         "invalid_source_emails": 10,
         "requests_per_second_limit": 16,
-        "api_endpoint": "https://api.example.com/validate"
+        "api_endpoint": "https://api.mails.so/v1/validate"
     },
     "performance": {
-        "total_processing_time": 0.07033252716064453,
-        "average_response_time": 0.0035166263580322264,
-        "max_response_time": 0.01743149757385254,
-        "min_response_time": 0.0024275779724121094
+        "total_processing_time": 11.440954685211182,
+        "average_response_time": 0.9534128904342651,
+        "max_response_time": 1.7404184341430664,
+        "min_response_time": 0.5035388469696045
     },
     "accuracy": {
         "classification_counts": {
-            "Error": 20
+            "Falso Negativo": 2,
+            "Verdadero Negativo": 10
         },
         "false_positive_rate_percent": 0.0,
-        "false_negative_rate_percent": 0.0
+        "false_negative_rate_percent": 100.0
     },
     "details": [
         {
-            "email": "suppport@example.com",
-            "duration": 0.01743149757385254,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "email": "lbarbosa@lanacion.com.ar",
+            "duration": 1.7404184341430664,
+            "classification": "Falso Negativo",
+            "response_reason": "N/A"
         },
         {
-            "email": "ventas@example.com",
-            "duration": 0.002876758575439453,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
-        },
-        {
-            "email": "test.email@example.com",
-            "duration": 0.0031614303588867188,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
-        },
-        {
-            "email": "developer@example.com",
-            "duration": 0.0026121139526367188,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
-        },
-        {
-            "email": "info@example.com",
-            "duration": 0.0028634071350097656,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
-        },
-        {
-            "email": "feedback@example.com",
-            "duration": 0.003062009811401367,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
-        },
-        {
-            "email": "jobs@example.com",
-            "duration": 0.002815723419189453,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
-        },
-        {
-            "email": "admin@example.com",
-            "duration": 0.002772092819213867,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
-        },
-        {
-            "email": "compras@example.com",
-            "duration": 0.002860546112060547,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
-        },
-        {
-            "email": "no-reply@example.com",
-            "duration": 0.0027925968170166016,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "email": "barbosalucasroberto@gmail.com",
+            "duration": 1.2253830432891846,
+            "classification": "Falso Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "test@.com",
-            "duration": 0.003032207489013672,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 0.8797914981842041,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "test@domain-.com",
-            "duration": 0.0025844573974609375,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 0.8165152072906494,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "test@domain.com.",
-            "duration": 0.002882719039916992,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 1.0861783027648926,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "test@.domain.com",
-            "duration": 0.0027680397033691406,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 1.1175627708435059,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "test@domain..com",
-            "duration": 0.002469778060913086,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 0.5035388469696045,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "test@domain.c",
-            "duration": 0.0027501583099365234,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 0.8404443264007568,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "user@.invalid.com",
-            "duration": 0.002615213394165039,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 0.8471846580505371,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "user@-invalid.com",
-            "duration": 0.0027627944946289062,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 0.8054928779602051,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "user@invalid-.com",
-            "duration": 0.0027914047241210938,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 0.8811688423156738,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "user@inv alid.com",
-            "duration": 0.0024275779724121094,
-            "classification": "Error",
-            "error_message": "Cannot connect to host api.example.com:443 ssl:default [Name or service not known]"
+            "duration": 0.6972758769989014,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         }
     ]
 }

@@ -8,3 +8,5 @@ user@.invalid.com
 user@-invalid.com
 user@invalid-.com
 user@inv alid.com
+ngaje@tiffincrane.com
+claudiabielinsky@wanadoo.fr

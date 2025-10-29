@@ -1,146 +1,97 @@
 {
     "summary": {
-        "total_requests": 20,
-        "valid_source_emails": 10,
+        "total_requests": 12,
+        "valid_source_emails": 2,
         "invalid_source_emails": 10,
-        "requests_per_second_limit": 16,
-        "api_endpoint": "http://localhost:8080/validate"
+        "requests_per_second_limit": 10,
+        "api_endpoint": "https://api.mails.so/v1/validate"
     },
     "performance": {
-        "total_processing_time": 0.06048083305358887,
-        "average_response_time": 0.0030240416526794434,
-        "max_response_time": 0.03367257118225098,
-        "min_response_time": 0.0011639595031738281
+        "total_processing_time": 13.926376819610596,
+        "average_response_time": 1.1605314016342163,
+        "max_response_time": 2.430913209915161,
+        "min_response_time": 0.8653421401977539
     },
     "accuracy": {
         "classification_counts": {
-            "Falso Negativo": 10,
-            "Verdadero Negativo": 7,
-            "Falso Positivo": 3
+            "Falso Negativo": 2,
+            "Verdadero Negativo": 10
         },
-        "false_positive_rate_percent": 30.0,
+        "false_positive_rate_percent": 0.0,
         "false_negative_rate_percent": 100.0
     },
     "details": [
         {
-            "email": "suppport@example.com",
-            "duration": 0.03367257118225098,
+            "email": "lbarbosa@lanacion.com.ar",
+            "duration": 2.430913209915161,
             "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         },
         {
-            "email": "ventas@example.com",
-            "duration": 0.002107381820678711,
+            "email": "barbosalucasroberto@gmail.com",
+            "duration": 1.442610263824463,
             "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
-        },
-        {
-            "email": "test.email@example.com",
-            "duration": 0.0013537406921386719,
-            "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
-        },
-        {
-            "email": "developer@example.com",
-            "duration": 0.0013210773468017578,
-            "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
-        },
-        {
-            "email": "info@example.com",
-            "duration": 0.0011639595031738281,
-            "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
-        },
-        {
-            "email": "feedback@example.com",
-            "duration": 0.0012631416320800781,
-            "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
-        },
-        {
-            "email": "jobs@example.com",
-            "duration": 0.0015072822570800781,
-            "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
-        },
-        {
-            "email": "admin@example.com",
-            "duration": 0.0013570785522460938,
-            "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
-        },
-        {
-            "email": "compras@example.com",
-            "duration": 0.0013718605041503906,
-            "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
-        },
-        {
-            "email": "no-reply@example.com",
-            "duration": 0.0015735626220703125,
-            "classification": "Falso Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         },
         {
             "email": "test@.com",
-            "duration": 0.0015163421630859375,
+            "duration": 0.9956839084625244,
             "classification": "Verdadero Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         },
         {
             "email": "test@domain-.com",
-            "duration": 0.0013816356658935547,
+            "duration": 0.9060413837432861,
             "classification": "Verdadero Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         },
         {
             "email": "test@domain.com.",
-            "duration": 0.0013163089752197266,
+            "duration": 1.0934948921203613,
             "classification": "Verdadero Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         },
         {
             "email": "test@.domain.com",
-            "duration": 0.0012280941009521484,
+            "duration": 1.2628319263458252,
             "classification": "Verdadero Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         },
         {
             "email": "test@domain..com",
-            "duration": 0.0014231204986572266,
+            "duration": 0.8653421401977539,
             "classification": "Verdadero Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         },
         {
             "email": "test@domain.c",
-            "duration": 0.0014884471893310547,
+            "duration": 0.9285764694213867,
             "classification": "Verdadero Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         },
         {
             "email": "user@.invalid.com",
-            "duration": 0.0014159679412841797,
-            "classification": "Falso Positivo",
-            "response_reason": "valid_email"
+            "duration": 1.1362614631652832,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "user@-invalid.com",
-            "duration": 0.0014541149139404297,
-            "classification": "Falso Positivo",
-            "response_reason": "valid_email"
+            "duration": 1.0763194561004639,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "user@invalid-.com",
-            "duration": 0.0012104511260986328,
-            "classification": "Falso Positivo",
-            "response_reason": "valid_email"
+            "duration": 0.915764331817627,
+            "classification": "Verdadero Negativo",
+            "response_reason": "N/A"
         },
         {
             "email": "user@inv alid.com",
-            "duration": 0.0013546943664550781,
+            "duration": 0.87253737449646,
             "classification": "Verdadero Negativo",
-            "response_reason": "invalid_email"
+            "response_reason": "N/A"
         }
     ]
 }

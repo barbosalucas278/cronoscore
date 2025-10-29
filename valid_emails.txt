@@ -1,10 +1,2 @@
-suppport@example.com
-ventas@example.com
-test.email@example.com
-developer@example.com
-info@example.com
-feedback@example.com
-jobs@example.com
-admin@example.com
-compras@example.com
-no-reply@example.com
+lbarbosa@lanacion.com.ar
+barbosalucasroberto@gmail.com

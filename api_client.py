@@ -57,7 +57,7 @@ async def process_email(session, email, is_valid_source, api_key, endpoint, vali
             result_json = await response.json()
 
             # Evaluar todas las reglas de validación
-            api_considers_valid = all(evaluate_rule(result_json, rule) for rule in validation_rules)
+            api_considers_valid = any(evaluate_rule(result_json, rule) for rule in validation_rules)
 
             if is_valid_source and api_considers_valid:
                 classification = "Valido considerado valido"

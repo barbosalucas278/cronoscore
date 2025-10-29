@@ -7,12 +7,19 @@ from statistics import calculate_statistics
 
 async def main():
     """
-    Función principal para orquestar las pruebas a la API.
+    Función principal para orquestar las pruebas a las APIs.
     """
-    # Cargar configuración desde argumentos de línea de comandos
-    args = get_config()
+    # Cargar configuración desde el archivo JSON y argumentos
+    try:
+        args = get_config()
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        return
+    except Exception as e:
+        print(f"Error al cargar la configuración: {e}")
+        return
 
-    print("Iniciando prueba de API...")
+    print("Iniciando pruebas de APIs...")
 
     # Cargar listas de emails
     valid_emails = read_emails_from_file(args.valid_emails_file)
@@ -22,35 +29,57 @@ async def main():
         print("No se encontraron emails para procesar. Abortando.")
         return
 
-    # Combina las listas para procesarlas
     emails_to_process = [(email, True) for email in valid_emails] + \
                         [(email, False) for email in invalid_emails]
 
-    total_requests = len(emails_to_process)
-    print(f"Total de emails a procesar: {total_requests}")
+    total_emails = len(emails_to_process)
+    print(f"Total de emails a procesar por cada API: {total_emails}")
 
-    # Ejecutar las pruebas
-    results = await run_api_tests(
-        emails_to_process,
-        args.api_key,
-        args.endpoint,
-        args.requests_per_second,
-        args.valid_reason
-    )
+    # Estructura para almacenar todos los resultados
+    all_apis_results = {}
 
-    print("Prueba completada. Generando estadísticas...")
+    # Iterar sobre cada API configurada
+    for api_config in args.apis:
+        api_name = api_config['name']
+        api_endpoint = api_config['endpoint']
+        api_key = api_config['api_key']
 
-    # Calcular estadísticas
-    stats = calculate_statistics(
-        results,
-        len(valid_emails),
-        len(invalid_emails),
-        args.requests_per_second,
-        args.endpoint
-    )
+        print(f"\n--- Probando API: {api_name} ---")
+        print(f"Endpoint: {api_endpoint}")
 
-    # Guardar resultados
-    save_results_to_json(stats, args.output_file)
+        # Ejecutar las pruebas para la API actual
+        results = await run_api_tests(
+            emails_to_process,
+            api_key,
+            api_endpoint,
+            args.requests_per_second,
+            args.valid_reason
+        )
+
+        print(f"Prueba para '{api_name}' completada. Generando estadísticas...")
+
+        # Calcular estadísticas para la API actual
+        stats = calculate_statistics(
+            results,
+            len(valid_emails),
+            len(invalid_emails),
+            args.requests_per_second,
+            api_endpoint  # Pasamos el endpoint para que quede registrado
+        )
+
+        # Guardar las estadísticas en el diccionario general
+        all_apis_results[api_name] = stats
+
+    # Guardar todos los resultados consolidados
+    final_output = {
+        "global_summary": {
+            "total_apis_tested": len(args.apis),
+            "total_emails_per_api": total_emails,
+        },
+        "individual_api_results": all_apis_results
+    }
+
+    save_results_to_json(final_output, args.output_file)
 
 if __name__ == "__main__":
     asyncio.run(main())

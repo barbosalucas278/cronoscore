@@ -76,157 +76,186 @@
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>Dashboard de Resultados</h1>
+        <h1>Dashboard de Resultados de Pruebas de API</h1>
         <button id="load-data-btn">Cargar Datos de results.json</button>
 
+        <!-- Contenido principal del dashboard -->
         <div id="dashboard-content" style="display: none;">
-            <h2>Resumen de Rendimiento</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Tiempo Promedio (s)</h3>
-                    <p id="avg-time">N/A</p>
+
+            <!-- Selector de API -->
+            <div class="selector-container">
+                <label for="api-selector">Seleccionar API:</label>
+                <select id="api-selector"></select>
+            </div>
+
+            <!-- Sección de Estadísticas Individuales -->
+            <div id="individual-stats">
+                <h2 id="api-name-title"></h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Tiempo Promedio (s)</h3>
+                        <p id="avg-time">N/A</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Tasa de Falsos Positivos</h3>
+                        <p id="fp-rate">N/A</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Tasa de Falsos Negativos</h3>
+                        <p id="fn-rate">N/A</p>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <h3>Tiempo Máximo (s)</h3>
-                    <p id="max-time">N/A</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Tiempo Mínimo (s)</h3>
-                    <p id="min-time">N/A</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Total de Solicitudes</h3>
-                    <p id="total-reqs">N/A</p>
+                <div class="chart-container">
+                    <div class="chart">
+                        <canvas id="classificationChart"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <h2>Resumen de Precisión</h2>
-            <div class="stats-grid">
-                 <div class="stat-card">
-                    <h3>% Falsos Positivos</h3>
-                    <p id="fp-rate">N/A</p>
-                </div>
-                <div class="stat-card">
-                    <h3>% Falsos Negativos</h3>
-                    <p id="fn-rate">N/A</p>
+            <!-- Sección de Comparación -->
+            <div id="comparison-section">
+                <h2>Comparación de APIs</h2>
+                <div class="chart-container">
+                    <div class="chart">
+                        <canvas id="comparisonChart-performance"></canvas>
+                    </div>
+                    <div class="chart">
+                        <canvas id="comparisonChart-accuracy"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <div class="chart-container">
-                <div class="chart">
-                    <h2>Clasificación de Resultados</h2>
-                    <canvas id="classificationChart"></canvas>
-                </div>
-                <div class="chart">
-                    <h2>Distribución de Tiempos de Respuesta</h2>
-                    <canvas id="timingChart"></canvas>
+            <!-- Sección de Calculadora de Costos -->
+            <div id="cost-calculator-section">
+                <h2>Calculadora de Costos Estimados</h2>
+                <div class="calculator-form">
+                    <label for="price-per-request">Precio por Solicitud ($):</label>
+                    <input type="number" id="price-per-request" step="0.0001" placeholder="Ej: 0.002">
+                    <button id="calculate-cost-btn">Calcular</button>
+                    <p>Costo Estimado: <strong id="estimated-cost">$0.00</strong></p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        let fullData = {};
+        let activeCharts = {};
+
         document.getElementById('load-data-btn').addEventListener('click', () => {
             fetch('results.json')
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error("No se pudo cargar 'results.json'. ¿Ejecutaste el script de Python primero?");
-                    }
+                    if (!response.ok) throw new Error("No se pudo cargar 'results.json'.");
                     return response.json();
                 })
                 .then(data => {
+                    fullData = data;
                     document.getElementById('dashboard-content').style.display = 'block';
                     document.getElementById('load-data-btn').style.display = 'none';
-                    populateDashboard(data);
+                    initializeDashboard();
                 })
-                .catch(error => {
-                    alert(error.message);
-                });
+                .catch(error => alert(error.message));
         });
 
-        function populateDashboard(data) {
-            // Rellenar tarjetas de estadísticas
+        function initializeDashboard() {
+            const apiSelector = document.getElementById('api-selector');
+            const apiResults = fullData.individual_api_results;
+            const apiNames = Object.keys(apiResults);
+
+            // Llenar selector
+            apiNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                apiSelector.appendChild(option);
+            });
+
+            // Evento para cambiar de API
+            apiSelector.addEventListener('change', (e) => {
+                updateIndividualStats(e.target.value);
+            });
+
+            // Cargar datos iniciales
+            if (apiNames.length > 0) {
+                updateIndividualStats(apiNames[0]);
+            }
+
+            generateComparisonCharts();
+            setupCostCalculator();
+        }
+
+        function updateIndividualStats(apiName) {
+            const data = fullData.individual_api_results[apiName];
+            if (!data) return;
+
+            document.getElementById('api-name-title').textContent = `Resultados para: ${apiName}`;
             document.getElementById('avg-time').textContent = data.performance.average_response_time.toFixed(4);
-            document.getElementById('max-time').textContent = data.performance.max_response_time.toFixed(4);
-            document.getElementById('min-time').textContent = data.performance.min_response_time.toFixed(4);
-            document.getElementById('total-reqs').textContent = data.summary.total_requests;
-            document.getElementById('fp-rate').textContent = data.accuracy.false_positive_rate_percent.toFixed(2) + '%';
-            document.getElementById('fn-rate').textContent = data.accuracy.false_negative_rate_percent.toFixed(2) + '%';
+            document.getElementById('fp-rate').textContent = `${data.accuracy.false_positive_rate_percent.toFixed(2)}%`;
+            document.getElementById('fn-rate').textContent = `${data.accuracy.false_negative_rate_percent.toFixed(2)}%`;
 
             // Gráfico de Clasificación
-            const classificationCtx = document.getElementById('classificationChart').getContext('2d');
             const classificationData = data.accuracy.classification_counts;
-            new Chart(classificationCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(classificationData),
-                    datasets: [{
-                        label: 'Número de Resultados',
-                        data: Object.values(classificationData),
-                        backgroundColor: [
-                            'rgba(46, 204, 113, 0.7)', // Verde (Valido considerado valido)
-                            'rgba(231, 76, 60, 0.7)',   // Rojo (Valido considerado invalido)
-                            'rgba(241, 196, 15, 0.7)',  // Amarillo (Invalido considerado valido)
-                            'rgba(52, 152, 219, 0.7)',  // Azul (Invalido considerado Invalido)
-                            'rgba(149, 165, 166, 0.7)'  // Gris (Error)
-                        ],
-                        borderColor: '#fff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
+            renderChart('classificationChart', 'doughnut', {
+                labels: Object.keys(classificationData),
+                datasets: [{
+                    data: Object.values(classificationData),
+                    backgroundColor: ['#2ecc71', '#e74c3c', '#f1c40f', '#3498db', '#95a5a6']
+                }]
+            });
+        }
+
+        function generateComparisonCharts() {
+            const apiResults = fullData.individual_api_results;
+            const apiNames = Object.keys(apiResults);
+
+            // Datos para gráficos
+            const avgTimes = apiNames.map(name => apiResults[name].performance.average_response_time);
+            const fpRates = apiNames.map(name => apiResults[name].accuracy.false_positive_rate_percent);
+            const fnRates = apiNames.map(name => apiResults[name].accuracy.false_negative_rate_percent);
+
+            // Gráfico de Rendimiento
+            renderChart('comparisonChart-performance', 'bar', {
+                labels: apiNames,
+                datasets: [{
+                    label: 'Tiempo Promedio de Respuesta (s)',
+                    data: avgTimes,
+                    backgroundColor: '#3498db'
+                }]
             });
 
-            // Gráfico de Tiempos de Respuesta
-            const timingCtx = document.getElementById('timingChart').getContext('2d');
-            const durations = data.details.map(d => d.duration);
-            const emailLabels = data.details.map(d => d.email);
-            new Chart(timingCtx, {
-                type: 'bar',
-                data: {
-                    labels: emailLabels,
-                    datasets: [{
-                        label: 'Tiempo de Respuesta (s)',
-                        data: durations,
-                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                        borderColor: 'rgba(52, 152, 219, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Tiempo (segundos)'
-                            }
-                        },
-                        x: {
-                            display: false // Ocultar etiquetas de email para no saturar
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                title: function(context) {
-                                    return emailLabels[context[0].dataIndex];
-                                }
-                            }
-                        }
-                    }
-                }
+            // Gráfico de Precisión
+            renderChart('comparisonChart-accuracy', 'bar', {
+                labels: apiNames,
+                datasets: [
+                    { label: 'Falsos Positivos (%)', data: fpRates, backgroundColor: '#e74c3c' },
+                    { label: 'Falsos Negativos (%)', data: fnRates, backgroundColor: '#f1c40f' }
+                ]
             });
+        }
+
+        function setupCostCalculator() {
+            const calculateBtn = document.getElementById('calculate-cost-btn');
+            calculateBtn.addEventListener('click', () => {
+                const pricePerRequest = parseFloat(document.getElementById('price-per-request').value);
+                const totalRequests = fullData.global_summary.total_emails_per_api;
+
+                if (isNaN(pricePerRequest) || pricePerRequest < 0) {
+                    alert("Por favor, ingrese un precio válido.");
+                    return;
+                }
+
+                const estimatedCost = totalRequests * pricePerRequest;
+                document.getElementById('estimated-cost').textContent = `$${estimatedCost.toFixed(2)}`;
+            });
+        }
+
+        function renderChart(canvasId, type, data) {
+            if (activeCharts[canvasId]) {
+                activeCharts[canvasId].destroy();
+            }
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            activeCharts[canvasId] = new Chart(ctx, { type, data });
         }
     </script>
 </body>

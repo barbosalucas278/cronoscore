@@ -1,0 +1,7 @@
+[
+    {
+        "name": "API_1",
+        "endpoint": "https://api.example.com/validate",
+        "api_key": "DEFAULT_API_KEY"
+    }
+]

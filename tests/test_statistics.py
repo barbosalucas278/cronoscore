@@ -7,11 +7,11 @@ class TestStatistics(unittest.TestCase):
     def setUp(self):
         """Prepara datos de prueba comunes para las pruebas."""
         self.mock_results = [
-            {'duration': 0.1, 'classification': 'Verdadero Positivo'},
-            {'duration': 0.2, 'classification': 'Verdadero Positivo'},
-            {'duration': 0.15, 'classification': 'Falso Negativo'},
-            {'duration': 0.3, 'classification': 'Falso Positivo'},
-            {'duration': 0.25, 'classification': 'Verdadero Negativo'},
+            {'duration': 0.1, 'classification': 'Valido considerado valido'},
+            {'duration': 0.2, 'classification': 'Valido considerado valido'},
+            {'duration': 0.15, 'classification': 'Valido considerado invalido'},
+            {'duration': 0.3, 'classification': 'Invalido considerado valido'},
+            {'duration': 0.25, 'classification': 'Invalido considerado Invalido'},
             {'duration': 0.4, 'classification': 'Error'},
         ]
         self.total_valid = 3
@@ -36,10 +36,10 @@ class TestStatistics(unittest.TestCase):
         accuracy = stats['accuracy']
         counts = accuracy['classification_counts']
 
-        self.assertEqual(counts['Verdadero Positivo'], 2)
-        self.assertEqual(counts['Falso Negativo'], 1)
-        self.assertEqual(counts['Falso Positivo'], 1)
-        self.assertEqual(counts['Verdadero Negativo'], 1)
+        self.assertEqual(counts['Valido considerado valido'], 2)
+        self.assertEqual(counts['Valido considerado invalido'], 1)
+        self.assertEqual(counts['Invalido considerado valido'], 1)
+        self.assertEqual(counts['Invalido considerado Invalido'], 1)
         self.assertEqual(counts['Error'], 1)
 
         # Tasa de Falsos Positivos = (Falsos Positivos / Total de Inválidos Reales) * 100

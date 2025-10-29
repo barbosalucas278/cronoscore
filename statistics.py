@@ -22,8 +22,8 @@ def calculate_statistics(results, total_valid_source, total_invalid_source, rps,
     classifications = [r['classification'] for r in results]
     classification_counts = Counter(classifications)
 
-    false_positives = classification_counts.get("Falso Positivo", 0)
-    false_negatives = classification_counts.get("Falso Negativo", 0)
+    false_positives = classification_counts.get("Invalido considerado valido", 0)
+    false_negatives = classification_counts.get("Valido considerado invalido", 0)
 
     fp_rate = (false_positives / total_invalid_source * 100) if total_invalid_source > 0 else 0
     fn_rate = (false_negatives / total_valid_source * 100) if total_valid_source > 0 else 0
@@ -55,10 +55,10 @@ def calculate_statistics(results, total_valid_source, total_invalid_source, rps,
 if __name__ == '__main__':
     # Pruebas para el módulo de estadísticas
     mock_results = [
-        {'email': 'valid1@test.com', 'duration': 0.1, 'classification': 'Verdadero Positivo'},
-        {'email': 'valid2@test.com', 'duration': 0.2, 'classification': 'Falso Negativo'},
-        {'email': 'invalid1@test.com', 'duration': 0.15, 'classification': 'Falso Positivo'},
-        {'email': 'invalid2@test.com', 'duration': 0.12, 'classification': 'Verdadero Negativo'},
+        {'email': 'valid1@test.com', 'duration': 0.1, 'classification': 'Valido considerado valido'},
+        {'email': 'valid2@test.com', 'duration': 0.2, 'classification': 'Valido considerado invalido'},
+        {'email': 'invalid1@test.com', 'duration': 0.15, 'classification': 'Invalido considerado valido'},
+        {'email': 'invalid2@test.com', 'duration': 0.12, 'classification': 'Invalido considerado Invalido'},
         {'email': 'error@test.com', 'duration': 0.5, 'classification': 'Error'},
     ]
 
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     # Verificaciones
     assert stats['summary']['total_requests'] == 5
     assert stats['performance']['max_response_time'] == 0.5
-    assert stats['accuracy']['classification_counts']['Falso Negativo'] == 1
+    assert stats['accuracy']['classification_counts']['Valido considerado invalido'] == 1
     assert stats['accuracy']['false_positive_rate_percent'] == 50.0
 
     print("\nPruebas del módulo de estadísticas pasaron exitosamente.")

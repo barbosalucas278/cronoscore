@@ -7,7 +7,7 @@ from api_client import process_email, run_api_tests
 class TestApiClient(unittest.TestCase):
 
     def test_process_email_verdadero_positivo(self):
-        """Prueba la clasificación de un Verdadero Positivo."""
+        """Prueba la clasificación de un Valido considerado valido."""
         mock_session = MagicMock()
         mock_response = AsyncMock()
         # Configurar el mock para que devuelva una razón de email válido
@@ -21,10 +21,10 @@ class TestApiClient(unittest.TestCase):
         ))
 
         # Verificar
-        self.assertEqual(result['classification'], 'Verdadero Positivo')
+        self.assertEqual(result['classification'], 'Valido considerado valido')
 
     def test_process_email_falso_negativo(self):
-        """Prueba la clasificación de un Falso Negativo."""
+        """Prueba la clasificación de un Valido considerado invalido."""
         mock_session = MagicMock()
         mock_response = AsyncMock()
         mock_response.json.return_value = {"reason": "invalid_email"}
@@ -34,7 +34,7 @@ class TestApiClient(unittest.TestCase):
             mock_session, "test@example.com", True, "fake_key", "http://fake.api", "valid_email"
         ))
 
-        self.assertEqual(result['classification'], 'Falso Negativo')
+        self.assertEqual(result['classification'], 'Valido considerado invalido')
 
     def test_process_email_api_error(self):
         """Prueba el manejo de un error de la API."""

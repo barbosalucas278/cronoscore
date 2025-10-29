@@ -1,1 +1,1 @@
-python api_tester.py --endpoint "https://api.mails.so/v1/validate" --api-key "0b90acda-a5ef-497f-8e39-f97974682047" -rps 10 --valid-reason "100" --output-file "experimento_mailsso_results.json"
+python api_tester.py --endpoint "https://api.mails.so/v1/validate" --api-key "24cf4ccb-6d8c-4bb4-b528-e27188e8be89" -rps 10 --valid-reason "80" --output-file "experimento_mailsso_results.json"

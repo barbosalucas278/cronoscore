@@ -15,23 +15,23 @@ async def process_email(session, email, is_valid_source, api_key, endpoint, vali
         async with session.get(url, headers=headers) as response:
             duration = time.time() - start_time
             result_json = await response.json()
-
-            api_considers_valid = result_json.get("score") >= valid_reason_str and result_json.get("result") == "deliverable"
+            print(result_json)
+            api_considers_valid = (int(result_json.get("data").get("score")) >= int(valid_reason_str) and result_json.get("data").get("result") == "risky") or result_json.get("data").get("result") == "deliverable"
 
             if is_valid_source and api_considers_valid:
-                classification = "Verdadero Positivo"
+                classification = "Valido considerado valido"
             elif is_valid_source and not api_considers_valid:
-                classification = "Falso Negativo"
+                classification = "Valido considerado invalido"
             elif not is_valid_source and api_considers_valid:
-                classification = "Falso Positivo"
+                classification = "Invalido considerado valido"
             else:
-                classification = "Verdadero Negativo"
+                classification = "Invalido considerado Invalido"
 
             return {
                 "email": email,
                 "duration": duration,
                 "classification": classification,
-                "response_reason": result_json.get("reason", "N/A")
+                "response_reason": result_json.get("data").get("reason")
             }
 
     except aiohttp.ClientError as e:
@@ -110,8 +110,8 @@ if __name__ == '__main__':
 
         # Verificar resultados
         assert len(results) == 2
-        assert results[0]['classification'] == 'Verdadero Positivo'
-        assert results[1]['classification'] == 'Verdadero Negativo'
+        assert results[0]['classification'] == 'Valido considerado valido'
+        assert results[1]['classification'] == 'Invalido considerado Invalido'
         print("\nPruebas del cliente API pasaron exitosamente.")
 
         # Detener el servidor

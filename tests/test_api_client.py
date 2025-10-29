@@ -1,6 +1,7 @@
 
 import unittest
 import asyncio
+import aiohttp
 from unittest.mock import MagicMock, AsyncMock
 from api_client import process_email, run_api_tests
 
@@ -11,13 +12,19 @@ class TestApiClient(unittest.TestCase):
         mock_session = MagicMock()
         mock_response = AsyncMock()
         # Configurar el mock para que devuelva una razón de email válido
-        mock_response.json.return_value = {"reason": "valid_email"}
+        mock_response.json.return_value = {
+            "data": {
+                "score": 30,
+                "result": "deliverable",
+                "reason": "valid_email"
+            }
+        }
         # Hacer que el 'async with' devuelva el mock_response
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
         # Ejecutar la función
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", "valid_email"
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", 20
         ))
 
         # Verificar
@@ -27,11 +34,17 @@ class TestApiClient(unittest.TestCase):
         """Prueba la clasificación de un Valido considerado invalido."""
         mock_session = MagicMock()
         mock_response = AsyncMock()
-        mock_response.json.return_value = {"reason": "invalid_email"}
+        mock_response.json.return_value = {
+            "data": {
+                "score": 10,
+                "result": "risky",
+                "reason": "invalid_email"
+            }
+        }
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", "valid_email"
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", 20
         ))
 
         self.assertEqual(result['classification'], 'Valido considerado invalido')
@@ -48,6 +61,56 @@ class TestApiClient(unittest.TestCase):
 
         self.assertEqual(result['classification'], 'Error')
         self.assertIn("Error de red", result['error_message'])
+
+    def test_process_email_invalido_considerado_valido(self):
+        """Prueba la clasificación de un Invalido considerado valido."""
+        mock_session = MagicMock()
+        mock_response = AsyncMock()
+        mock_response.json.return_value = {
+            "data": {
+                "score": 30,
+                "result": "deliverable",
+                "reason": "valid_email"
+            }
+        }
+        mock_session.get.return_value.__aenter__.return_value = mock_response
+
+        result = asyncio.run(process_email(
+            mock_session, "test@example.com", False, "fake_key", "http://fake.api", 20
+        ))
+
+        self.assertEqual(result['classification'], 'Invalido considerado valido')
+
+    def test_process_email_invalido_considerado_invalido(self):
+        """Prueba la clasificación de un Invalido considerado Invalido."""
+        mock_session = MagicMock()
+        mock_response = AsyncMock()
+        mock_response.json.return_value = {
+            "data": {
+                "score": 10,
+                "result": "risky",
+                "reason": "invalid_email"
+            }
+        }
+        mock_session.get.return_value.__aenter__.return_value = mock_response
+
+        result = asyncio.run(process_email(
+            mock_session, "test@example.com", False, "fake_key", "http://fake.api", 20
+        ))
+
+        self.assertEqual(result['classification'], 'Invalido considerado Invalido')
+
+    def test_process_email_aiohttp_client_error(self):
+        """Prueba el manejo de aiohttp.ClientError."""
+        mock_session = MagicMock()
+        mock_session.get.side_effect = aiohttp.ClientError("Error de cliente")
+
+        result = asyncio.run(process_email(
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", 20
+        ))
+
+        self.assertEqual(result['classification'], 'Error')
+        self.assertIn("Error de cliente", result['error_message'])
 
     def test_run_api_tests_rate_limit(self):
         """Prueba que el limitador de velocidad funciona (aproximadamente)."""

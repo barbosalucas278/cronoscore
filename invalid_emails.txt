@@ -1,0 +1,10 @@
+test@.com
+test@domain-.com
+test@domain.com.
+test@.domain.com
+test@domain..com
+test@domain.c
+user@.invalid.com
+user@-invalid.com
+user@invalid-.com
+user@inv alid.com

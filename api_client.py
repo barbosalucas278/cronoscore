@@ -3,7 +3,7 @@ import aiohttp
 import time
 import asyncio
 
-async def process_email(session, email, is_valid_source, api_key, endpoint, valid_reason_str):
+async def process_email(session, email, is_valid_source, api_key, endpoint, validation_rule):
     """
     Envía un único email a la API y procesa la respuesta.
     """
@@ -16,7 +16,16 @@ async def process_email(session, email, is_valid_source, api_key, endpoint, vali
             duration = time.time() - start_time
             result_json = await response.json()
             print(result_json)
-            api_considers_valid = (int(result_json.get("data").get("score")) >= int(valid_reason_str) and result_json.get("data").get("result") == "risky") or result_json.get("data").get("result") == "deliverable"
+
+            # Lógica de validación dinámica
+            score = result_json.get("data", {}).get("score")
+            result = result_json.get("data", {}).get("result")
+
+            rule_score = validation_rule.get("score")
+            rule_result = validation_rule.get("result")
+
+            api_considers_valid = (score is not None and int(score) >= int(rule_score)) and \
+                                  (result == rule_result or result == "deliverable")
 
             if is_valid_source and api_considers_valid:
                 classification = "Valido considerado valido"
@@ -51,7 +60,7 @@ async def process_email(session, email, is_valid_source, api_key, endpoint, vali
             "error_message": f"Error inesperado: {str(e)}"
         }
 
-async def run_api_tests(emails_to_process, api_key, endpoint, rps, valid_reason):
+async def run_api_tests(emails_to_process, api_key, endpoint, rps, validation_rule):
     """
     Ejecuta las pruebas de API para una lista de emails.
     """
@@ -62,7 +71,7 @@ async def run_api_tests(emails_to_process, api_key, endpoint, rps, valid_reason)
         tasks = []
         for email, is_valid_source in emails_to_process:
             task = asyncio.create_task(
-                process_email(session, email, is_valid_source, api_key, endpoint, valid_reason)
+                process_email(session, email, is_valid_source, api_key, endpoint, validation_rule)
             )
             tasks.append(task)
             await asyncio.sleep(delay)

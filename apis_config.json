@@ -2,6 +2,10 @@
     {
         "name": "API_1",
         "endpoint": "https://api.example.com/validate",
-        "api_key": "DEFAULT_API_KEY"
+        "api_key": "DEFAULT_API_KEY",
+        "validation_rule": {
+            "score": "80",
+            "result": "deliverable"
+        }
     }
 ]

@@ -24,7 +24,7 @@ class TestApiClient(unittest.TestCase):
 
         # Ejecutar la función
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", 20
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
         ))
 
         # Verificar
@@ -44,7 +44,7 @@ class TestApiClient(unittest.TestCase):
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", 20
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
         ))
 
         self.assertEqual(result['classification'], 'Valido considerado invalido')
@@ -56,7 +56,7 @@ class TestApiClient(unittest.TestCase):
         mock_session.get.side_effect = Exception("Error de red")
 
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", "valid_email"
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
         ))
 
         self.assertEqual(result['classification'], 'Error')
@@ -76,7 +76,7 @@ class TestApiClient(unittest.TestCase):
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", False, "fake_key", "http://fake.api", 20
+            mock_session, "test@example.com", False, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
         ))
 
         self.assertEqual(result['classification'], 'Invalido considerado valido')
@@ -95,10 +95,31 @@ class TestApiClient(unittest.TestCase):
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", False, "fake_key", "http://fake.api", 20
+            mock_session, "test@example.com", False, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
         ))
 
         self.assertEqual(result['classification'], 'Invalido considerado Invalido')
+
+    def test_process_email_with_validation_rule(self):
+        """Prueba la clasificación con una regla de validación específica."""
+        mock_session = MagicMock()
+        mock_response = AsyncMock()
+        mock_response.json.return_value = {
+            "data": {
+                "score": 85,
+                "result": "deliverable",
+                "reason": "valid_email"
+            }
+        }
+        mock_session.get.return_value.__aenter__.return_value = mock_response
+
+        validation_rule = {"score": "80", "result": "deliverable"}
+
+        result = asyncio.run(process_email(
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", validation_rule
+        ))
+
+        self.assertEqual(result['classification'], 'Valido considerado valido')
 
     def test_process_email_aiohttp_client_error(self):
         """Prueba el manejo de aiohttp.ClientError."""
@@ -106,7 +127,7 @@ class TestApiClient(unittest.TestCase):
         mock_session.get.side_effect = aiohttp.ClientError("Error de cliente")
 
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", 20
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
         ))
 
         self.assertEqual(result['classification'], 'Error')
@@ -124,7 +145,7 @@ class TestApiClient(unittest.TestCase):
                 rps = 10 # 10 solicitudes por segundo -> 0.1s de delay
 
                 start_time = asyncio.get_event_loop().time()
-                await run_api_tests(emails_to_process, "key", "endpoint", rps, "valid")
+                await run_api_tests(emails_to_process, "key", "endpoint", rps, {"score": "20", "result": "deliverable"})
                 end_time = asyncio.get_event_loop().time()
 
                 duration = end_time - start_time

@@ -19,13 +19,13 @@ async def process_email(session, email, is_valid_source, api_key, endpoint, vali
             api_considers_valid = result_json.get("score") >= valid_reason_str and result_json.get("result") == "deliverable"
 
             if is_valid_source and api_considers_valid:
-                classification = "Valido considerado valido"
+                classification = "Verdadero Positivo"
             elif is_valid_source and not api_considers_valid:
-                classification = "Valido considerado Invalido"
+                classification = "Falso Negativo"
             elif not is_valid_source and api_considers_valid:
-                classification = "Invalido considerado Valido"
+                classification = "Falso Positivo"
             else:
-                classification = "Invalido considerado Invalido"
+                classification = "Verdadero Negativo"
 
             return {
                 "email": email,

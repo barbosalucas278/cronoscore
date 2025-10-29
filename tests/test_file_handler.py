@@ -57,5 +57,12 @@ class TestFileHandler(unittest.TestCase):
         self.assertEqual(loaded_data["summary"], "Test Summary")
         self.assertEqual(loaded_data["details"], [1, 2, 3])
 
+    def test_save_results_to_json_io_error(self):
+        """Prueba el manejo de IOError al guardar resultados."""
+        with unittest.mock.patch('builtins.open', side_effect=IOError("Permission denied")), \
+             unittest.mock.patch('builtins.print') as mock_print:
+            save_results_to_json({}, "ruta/protegida/resultado.json")
+            mock_print.assert_called_with("Error al guardar el archivo de resultados: Permission denied")
+
 if __name__ == '__main__':
     unittest.main()

@@ -11,7 +11,6 @@ class TestApiClient(unittest.TestCase):
         """Prueba la clasificación de un Valido considerado valido."""
         mock_session = MagicMock()
         mock_response = AsyncMock()
-        # Configurar el mock para que devuelva una razón de email válido
         mock_response.json.return_value = {
             "data": {
                 "score": 30,
@@ -19,15 +18,14 @@ class TestApiClient(unittest.TestCase):
                 "reason": "valid_email"
             }
         }
-        # Hacer que el 'async with' devuelva el mock_response
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
-        # Ejecutar la función
+        validation_rule = {"score_field": "score", "result_field": "result", "score_value": "20", "result_value": "deliverable"}
+
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", validation_rule
         ))
 
-        # Verificar
         self.assertEqual(result['classification'], 'Valido considerado valido')
 
     def test_process_email_falso_negativo(self):
@@ -43,8 +41,10 @@ class TestApiClient(unittest.TestCase):
         }
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
+        validation_rule = {"score_field": "score", "result_field": "result", "score_value": "20", "result_value": "deliverable"}
+
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", validation_rule
         ))
 
         self.assertEqual(result['classification'], 'Valido considerado invalido')
@@ -52,11 +52,12 @@ class TestApiClient(unittest.TestCase):
     def test_process_email_api_error(self):
         """Prueba el manejo de un error de la API."""
         mock_session = MagicMock()
-        # Simular una excepción al hacer la llamada
         mock_session.get.side_effect = Exception("Error de red")
 
+        validation_rule = {"score_field": "score", "result_field": "result", "score_value": "20", "result_value": "deliverable"}
+
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", validation_rule
         ))
 
         self.assertEqual(result['classification'], 'Error')
@@ -75,8 +76,10 @@ class TestApiClient(unittest.TestCase):
         }
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
+        validation_rule = {"score_field": "score", "result_field": "result", "score_value": "20", "result_value": "deliverable"}
+
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", False, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
+            mock_session, "test@example.com", False, "fake_key", "http://fake.api", validation_rule
         ))
 
         self.assertEqual(result['classification'], 'Invalido considerado valido')
@@ -94,26 +97,28 @@ class TestApiClient(unittest.TestCase):
         }
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
+        validation_rule = {"score_field": "score", "result_field": "result", "score_value": "20", "result_value": "deliverable"}
+
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", False, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
+            mock_session, "test@example.com", False, "fake_key", "http://fake.api", validation_rule
         ))
 
         self.assertEqual(result['classification'], 'Invalido considerado Invalido')
 
-    def test_process_email_with_validation_rule(self):
-        """Prueba la clasificación con una regla de validación específica."""
+    def test_process_email_with_custom_validation_fields(self):
+        """Prueba la clasificación con nombres de campos de validación personalizados."""
         mock_session = MagicMock()
         mock_response = AsyncMock()
         mock_response.json.return_value = {
             "data": {
-                "score": 85,
-                "result": "deliverable",
+                "custom_score": 90,
+                "validation_status": "ok",
                 "reason": "valid_email"
             }
         }
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
-        validation_rule = {"score": "80", "result": "deliverable"}
+        validation_rule = {"score_field": "custom_score", "result_field": "validation_status", "score_value": "80", "result_value": "ok"}
 
         result = asyncio.run(process_email(
             mock_session, "test@example.com", True, "fake_key", "http://fake.api", validation_rule
@@ -126,8 +131,10 @@ class TestApiClient(unittest.TestCase):
         mock_session = MagicMock()
         mock_session.get.side_effect = aiohttp.ClientError("Error de cliente")
 
+        validation_rule = {"score_field": "score", "result_field": "result", "score_value": "20", "result_value": "deliverable"}
+
         result = asyncio.run(process_email(
-            mock_session, "test@example.com", True, "fake_key", "http://fake.api", {"score": "20", "result": "deliverable"}
+            mock_session, "test@example.com", True, "fake_key", "http://fake.api", validation_rule
         ))
 
         self.assertEqual(result['classification'], 'Error')
@@ -137,23 +144,21 @@ class TestApiClient(unittest.TestCase):
         """Prueba que el limitador de velocidad funciona (aproximadamente)."""
 
         async def main_test():
-            # Reemplazar la función real con nuestro mock
             with unittest.mock.patch('api_client.process_email', new_callable=AsyncMock) as mock_process_email:
                 mock_process_email.return_value = {"classification": "OK"}
 
                 emails_to_process = [("email1", True), ("email2", False), ("email3", True)]
-                rps = 10 # 10 solicitudes por segundo -> 0.1s de delay
+                rps = 10
+                validation_rule = {"score_field": "score", "result_field": "result", "score_value": "20", "result_value": "deliverable"}
 
                 start_time = asyncio.get_event_loop().time()
-                await run_api_tests(emails_to_process, "key", "endpoint", rps, {"score": "20", "result": "deliverable"})
+                await run_api_tests(emails_to_process, "key", "endpoint", rps, validation_rule)
                 end_time = asyncio.get_event_loop().time()
 
                 duration = end_time - start_time
                 expected_duration = (len(emails_to_process) - 1) / rps
 
-                # La duración real debería ser ligeramente mayor que la esperada
                 self.assertGreater(duration, expected_duration)
-                # El número de llamadas debe ser igual al número de emails
                 self.assertEqual(mock_process_email.call_count, len(emails_to_process))
 
         asyncio.run(main_test())

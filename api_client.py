@@ -18,14 +18,16 @@ async def process_email(session, email, is_valid_source, api_key, endpoint, vali
             print(result_json)
 
             # Lógica de validación dinámica
-            score = result_json.get("data", {}).get("score")
-            result = result_json.get("data", {}).get("result")
+            score_field = validation_rule.get("score_field")
+            result_field = validation_rule.get("result_field")
+            score_value = validation_rule.get("score_value")
+            result_value = validation_rule.get("result_value")
 
-            rule_score = validation_rule.get("score")
-            rule_result = validation_rule.get("result")
+            score = result_json.get("data", {}).get(score_field)
+            result = result_json.get("data", {}).get(result_field)
 
-            api_considers_valid = (score is not None and int(score) >= int(rule_score)) and \
-                                  (result == rule_result or result == "deliverable")
+            api_considers_valid = (score is not None and int(score) >= int(score_value)) and \
+                                  (result == result_value or result == "deliverable")
 
             if is_valid_source and api_considers_valid:
                 classification = "Valido considerado valido"

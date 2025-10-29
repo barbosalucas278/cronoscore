@@ -3,11 +3,17 @@
         "name": "API_1",
         "endpoint": "https://api.example.com/validate",
         "api_key": "DEFAULT_API_KEY",
-        "validation_rule": {
-            "score_field": "score",
-            "result_field": "result",
-            "score_value": "80",
-            "result_value": "deliverable"
-        }
+        "validation_rules": [
+            {
+                "field": "score",
+                "operator": ">=",
+                "value": "80"
+            },
+            {
+                "field": "result",
+                "operator": "in",
+                "value": ["deliverable", "risky"]
+            }
+        ]
     }
 ]

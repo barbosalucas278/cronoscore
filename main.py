@@ -43,7 +43,7 @@ async def main():
         api_name = api_config['name']
         api_endpoint = api_config['endpoint']
         api_key = api_config['api_key']
-        validation_rule = api_config['validation_rule']
+        validation_rules = api_config['validation_rules']
 
         print(f"\n--- Probando API: {api_name} ---")
         print(f"Endpoint: {api_endpoint}")
@@ -54,7 +54,7 @@ async def main():
             api_key,
             api_endpoint,
             args.requests_per_second,
-            validation_rule
+            validation_rules
         )
 
         print(f"Prueba para '{api_name}' completada. Generando estadísticas...")

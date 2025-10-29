@@ -41,12 +41,27 @@ class TestApiClient(unittest.TestCase):
         result = asyncio.run(process_email(mock_session, "test@example.com", True, "fake_key", "http://fake.api", rules))
         self.assertEqual(result['classification'], 'Valido considerado valido')
 
-    def test_process_email_one_rule_fails_falso_negativo(self):
+    def test_process_email_any_rule_passes_verdadero_positivo(self):
         mock_session = MagicMock()
         mock_response = AsyncMock()
         mock_response.json.return_value = {"data": {"score": 70, "result": "deliverable"}}
         mock_session.get.return_value.__aenter__.return_value = mock_response
-        rules = [{"field": "score", "operator": ">=", "value": 80}]
+        rules = [
+            {"field": "score", "operator": ">=", "value": 80},
+            {"field": "result", "operator": "in", "value": ["deliverable", "risky"]}
+        ]
+        result = asyncio.run(process_email(mock_session, "test@example.com", True, "fake_key", "http://fake.api", rules))
+        self.assertEqual(result['classification'], 'Valido considerado valido')
+
+    def test_process_email_all_rules_fail_falso_negativo(self):
+        mock_session = MagicMock()
+        mock_response = AsyncMock()
+        mock_response.json.return_value = {"data": {"score": 70, "result": "undeliverable"}}
+        mock_session.get.return_value.__aenter__.return_value = mock_response
+        rules = [
+            {"field": "score", "operator": ">=", "value": 80},
+            {"field": "result", "operator": "in", "value": ["deliverable", "risky"]}
+        ]
         result = asyncio.run(process_email(mock_session, "test@example.com", True, "fake_key", "http://fake.api", rules))
         self.assertEqual(result['classification'], 'Valido considerado invalido')
 

@@ -32,10 +32,6 @@ def get_config():
                         help="Archivo con la lista de emails válidos.")
     parser.add_argument("--invalid-emails-file", type=str, default="invalid_emails.txt",
                         help="Archivo con la lista de emails inválidos.")
-    parser.add_argument("--output-file", type=str, default="results.json",
-                        help="Archivo donde se guardará el output en formato JSON.")
-    parser.add_argument("--valid-reason", type=str, default=VALID_REASON,
-                        help="El valor de la propiedad 'reason' que la API devuelve para un email válido.")
 
     args = parser.parse_args()
 

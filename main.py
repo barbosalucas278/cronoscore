@@ -43,6 +43,7 @@ async def main():
         api_name = api_config['name']
         api_endpoint = api_config['endpoint']
         api_key = api_config['api_key']
+        validation_rule = api_config['validation_rule']
 
         print(f"\n--- Probando API: {api_name} ---")
         print(f"Endpoint: {api_endpoint}")
@@ -53,7 +54,7 @@ async def main():
             api_key,
             api_endpoint,
             args.requests_per_second,
-            args.valid_reason
+            validation_rule
         )
 
         print(f"Prueba para '{api_name}' completada. Generando estadísticas...")
@@ -79,7 +80,7 @@ async def main():
         "individual_api_results": all_apis_results
     }
 
-    save_results_to_json(final_output, args.output_file)
+    save_results_to_json(final_output, "results.json")
 
 if __name__ == "__main__":
     asyncio.run(main())

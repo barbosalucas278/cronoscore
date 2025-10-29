@@ -13,6 +13,8 @@
 ### Changed
 - **Formato de Salida**: El archivo `results.json` ahora tiene una estructura anidada para almacenar los resultados de cada API por separado.
 - **Flujo Principal**: `main.py` fue actualizado para iterar sobre la lista de APIs configuradas y recolectar los resultados de cada una.
+- **Salida de Fichero Hardcodeada**: El nombre del fichero de salida se ha fijado a `results.json` y ya no es configurable a través de argumentos de línea de comandos.
+- **Reglas de Validación por API**: Cada API en `apis_config.json` puede ahora tener su propia `validation_rule` para determinar lo que constituye una respuesta de correo electrónico válida.
 
 ## [1.1.0] - 2024-10-26
 

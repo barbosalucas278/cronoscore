@@ -2,7 +2,12 @@
     {
         "name": "API_1",
         "endpoint": "https://api.example.com/validate",
-        "api_key": "DEFAULT_API_KEY",
+        "api_key": "$EMAIL_API_KEY",
+        "method": "GET",
+        "param_name": "email",
+        "headers": {},
+        "response_path": "data",
+        "timeout": 30,
         "validation_rules": [
             {
                 "field": "score",
@@ -12,7 +17,10 @@
             {
                 "field": "result",
                 "operator": "in",
-                "value": ["deliverable", "risky"]
+                "value": [
+                    "deliverable",
+                    "risky"
+                ]
             }
         ]
     }

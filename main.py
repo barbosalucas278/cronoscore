@@ -1,9 +1,29 @@
 
 import asyncio
+import sys
+import logging
 from config import get_config
 from file_handler import read_emails_from_file, save_results_to_json
 from api_client import run_api_tests
-from statistics import calculate_statistics
+from stats_calculator import calculate_statistics
+
+logger = logging.getLogger(__name__)
+
+
+def create_progress_callback(api_name: str, total: int):
+    """Crea un callback de progreso que imprime el avance."""
+    def on_progress(completed: int, total_count: int) -> None:
+        percent = (completed / total_count) * 100 if total_count > 0 else 0
+        bar_length = 30
+        filled = int(bar_length * completed // total_count)
+        bar = '█' * filled + '░' * (bar_length - filled)
+        sys.stdout.write(f"\r  [{bar}] {completed}/{total_count} ({percent:.0f}%)")
+        sys.stdout.flush()
+        if completed == total_count:
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+    return on_progress
+
 
 async def main():
     """
@@ -15,25 +35,28 @@ async def main():
     except FileNotFoundError as e:
         print(f"Error: {e}")
         return
+    except ValueError as e:
+        print(f"Error de configuración: {e}")
+        return
     except Exception as e:
         print(f"Error al cargar la configuración: {e}")
         return
 
-    print("Iniciando pruebas de APIs...")
+    logger.info("Iniciando pruebas de APIs...")
 
     # Cargar listas de emails
     valid_emails = read_emails_from_file(args.valid_emails_file)
     invalid_emails = read_emails_from_file(args.invalid_emails_file)
 
     if not valid_emails and not invalid_emails:
-        print("No se encontraron emails para procesar. Abortando.")
+        logger.error("No se encontraron emails para procesar. Abortando.")
         return
 
     emails_to_process = [(email, True) for email in valid_emails] + \
                         [(email, False) for email in invalid_emails]
 
     total_emails = len(emails_to_process)
-    print(f"Total de emails a procesar por cada API: {total_emails}")
+    logger.info("Total de emails a procesar por cada API: %d", total_emails)
 
     # Estructura para almacenar todos los resultados
     all_apis_results = {}
@@ -42,22 +65,22 @@ async def main():
     for api_config in args.apis:
         api_name = api_config['name']
         api_endpoint = api_config['endpoint']
-        api_key = api_config['api_key']
-        validation_rules = api_config['validation_rules']
 
-        print(f"\n--- Probando API: {api_name} ---")
-        print(f"Endpoint: {api_endpoint}")
+        logger.info("--- Probando API: %s ---", api_name)
+        logger.info("Endpoint: %s", api_endpoint)
+
+        # Crear callback de progreso
+        progress_cb = create_progress_callback(api_name, total_emails)
 
         # Ejecutar las pruebas para la API actual
         results = await run_api_tests(
             emails_to_process,
-            api_key,
-            api_endpoint,
+            api_config,
             args.requests_per_second,
-            validation_rules
+            on_progress=progress_cb,
         )
 
-        print(f"Prueba para '{api_name}' completada. Generando estadísticas...")
+        logger.info("Prueba para '%s' completada. Generando estadísticas...", api_name)
 
         # Calcular estadísticas para la API actual
         stats = calculate_statistics(
@@ -65,7 +88,7 @@ async def main():
             len(valid_emails),
             len(invalid_emails),
             args.requests_per_second,
-            api_endpoint  # Pasamos el endpoint para que quede registrado
+            api_endpoint,
         )
 
         # Guardar las estadísticas en el diccionario general
@@ -81,6 +104,8 @@ async def main():
     }
 
     save_results_to_json(final_output, "results.json")
+    logger.info("Proceso finalizado exitosamente.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

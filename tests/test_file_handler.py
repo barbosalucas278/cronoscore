@@ -2,7 +2,9 @@
 import unittest
 import os
 import json
+from unittest import mock
 from file_handler import read_emails_from_file, save_results_to_json
+
 
 class TestFileHandler(unittest.TestCase):
 
@@ -22,12 +24,9 @@ class TestFileHandler(unittest.TestCase):
 
     def tearDown(self):
         """Limpia el entorno después de cada prueba."""
-        if os.path.exists(self.valid_file):
-            os.remove(self.valid_file)
-        if os.path.exists(self.invalid_file):
-            os.remove(self.invalid_file)
-        if os.path.exists(self.output_file):
-            os.remove(self.output_file)
+        for f in [self.valid_file, self.invalid_file, self.output_file]:
+            if os.path.exists(f):
+                os.remove(f)
 
     def test_read_valid_emails(self):
         """Prueba que la lectura de emails válidos funciona y limpia los espacios."""
@@ -47,8 +46,8 @@ class TestFileHandler(unittest.TestCase):
             "summary": "Test Summary",
             "details": [1, 2, 3]
         }
-        save_results_to_json(test_data, self.output_file)
-
+        result = save_results_to_json(test_data, self.output_file)
+        self.assertTrue(result)
         self.assertTrue(os.path.exists(self.output_file))
 
         with open(self.output_file, 'r') as f:
@@ -57,12 +56,12 @@ class TestFileHandler(unittest.TestCase):
         self.assertEqual(loaded_data["summary"], "Test Summary")
         self.assertEqual(loaded_data["details"], [1, 2, 3])
 
-    def test_save_results_to_json_io_error(self):
-        """Prueba el manejo de IOError al guardar resultados."""
-        with unittest.mock.patch('builtins.open', side_effect=IOError("Permission denied")), \
-             unittest.mock.patch('builtins.print') as mock_print:
-            save_results_to_json({}, "ruta/protegida/resultado.json")
-            mock_print.assert_called_with("Error al guardar el archivo de resultados: Permission denied")
+    def test_save_results_returns_false_on_error(self):
+        """Prueba que save_results_to_json retorna False en caso de error."""
+        with mock.patch('builtins.open', side_effect=IOError("Permission denied")):
+            result = save_results_to_json({}, "ruta/protegida/resultado.json")
+            self.assertFalse(result)
+
 
 if __name__ == '__main__':
     unittest.main()

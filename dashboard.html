@@ -1,139 +1,523 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Resultados de Pruebas de API</title>
+    <title>CronoScore - Dashboard de Resultados</title>
+    <meta name="description" content="Dashboard interactivo para visualizar resultados de pruebas de APIs de validación de email.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --bg-card-hover: #fafbfc;
+            --bg-input: #f8f9fa;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border: #e5e7eb;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: rgba(99, 102, 241, 0.1);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #283548;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --accent: #818cf8;
+            --accent-hover: #6366f1;
+            --accent-light: rgba(129, 140, 248, 0.15);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.35);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f6f8;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color var(--transition), color var(--transition);
+            line-height: 1.6;
         }
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1, h2 {
-            text-align: center;
-            color: #2c3e50;
-        }
-        .chart-container {
+
+        /* Navbar */
+        .navbar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
             display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            margin-top: 30px;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+            transition: background-color var(--transition), border-color var(--transition);
         }
-        .chart {
-            width: 100%;
-            max-width: 450px;
-            margin: 20px;
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
         }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        .stat-card {
-            background: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        .stat-card h3 {
-            margin-top: 0;
-            color: #3498db;
-        }
-        .stat-card p {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 10px 0 0 0;
-            color: #2c3e50;
-        }
-        #load-data-btn {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            font-size: 16px;
+
+        .navbar-brand svg { width: 28px; height: 28px; }
+
+        .navbar-actions { display: flex; align-items: center; gap: 12px; }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            background-color: #3498db;
+            transition: all var(--transition);
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 60px 40px;
+            text-align: center;
+            transition: all var(--transition);
+            background: var(--bg-card);
+            cursor: pointer;
+            margin-bottom: 24px;
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .drop-zone-icon { font-size: 48px; margin-bottom: 16px; }
+
+        .drop-zone h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .drop-zone p { color: var(--text-secondary); font-size: 14px; }
+
+        .drop-zone input[type="file"] { display: none; }
+
+        .drop-zone .btn-browse {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 24px;
+            background: var(--accent);
             color: white;
             border: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background var(--transition);
         }
-        #load-data-btn:hover {
-            background-color: #2980b9;
+
+        .drop-zone .btn-browse:hover { background: var(--accent-hover); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-card .stat-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+        .stat-card.success .stat-value { color: var(--success); }
+        .stat-card.danger .stat-value { color: var(--danger); }
+        .stat-card.warning .stat-value { color: var(--warning); }
+        .stat-card.info .stat-value { color: var(--info); }
+
+        /* Sections */
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* API Selector */
+        .api-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .api-selector label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .api-selector select {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: border-color var(--transition);
+        }
+
+        .api-selector select:focus { outline: none; border-color: var(--accent); }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        .chart-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-wrapper canvas { max-height: 320px; }
+
+        /* Table */
+        .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead { position: sticky; top: 0; z-index: 10; }
+
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-input);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover td { background: var(--accent-light); }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success { background: rgba(16, 185, 129, 0.1); color: #059669; }
+        .badge-danger { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+        .badge-warning { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+        .badge-info { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+
+        [data-theme="dark"] .badge-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        [data-theme="dark"] .badge-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        [data-theme="dark"] .badge-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        [data-theme="dark"] .badge-info { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 18px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+        .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+        .btn-primary:hover { background: var(--accent-hover); color: white; }
+
+        /* Cost Calculator */
+        .calculator-form {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .calculator-form input {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            width: 160px;
+            transition: border-color var(--transition);
+        }
+
+        .calculator-form input:focus { outline: none; border-color: var(--accent); }
+
+        .cost-result {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-left: 12px;
+        }
+
+        /* Hidden */
+        .hidden { display: none !important; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .navbar { padding: 12px 16px; }
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
     </style>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            CronoScore
+        </div>
+        <div class="navbar-actions">
+            <button class="theme-toggle" id="theme-toggle" title="Cambiar tema">🌙</button>
+        </div>
+    </nav>
+
     <div class="container">
-        <h1>Dashboard de Resultados de Pruebas de API</h1>
-        <button id="load-data-btn">Cargar Datos de results.json</button>
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-icon">📊</div>
+            <h2>Cargar resultados</h2>
+            <p>Arrastrá un archivo <strong>results.json</strong> aquí o hacé clic para seleccionarlo</p>
+            <input type="file" id="file-input" accept=".json">
+            <button class="btn-browse" onclick="document.getElementById('file-input').click()">Seleccionar archivo</button>
+        </div>
 
-        <!-- Contenido principal del dashboard -->
-        <div id="dashboard-content" style="display: none;">
+        <!-- Dashboard Content -->
+        <div id="dashboard-content" class="hidden">
 
-            <!-- Selector de API -->
-            <div class="selector-container">
-                <label for="api-selector">Seleccionar API:</label>
-                <select id="api-selector"></select>
+            <!-- Global Summary Row -->
+            <div class="stats-grid fade-in" id="global-stats">
+                <div class="stat-card info">
+                    <div class="stat-label">APIs Probadas</div>
+                    <div class="stat-value" id="total-apis">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Emails por API</div>
+                    <div class="stat-value" id="total-emails">0</div>
+                </div>
             </div>
 
-            <!-- Sección de Estadísticas Individuales -->
-            <div id="individual-stats">
-                <h2 id="api-name-title"></h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Tiempo Promedio (s)</h3>
-                        <p id="avg-time">N/A</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Tasa de Falsos Positivos</h3>
-                        <p id="fp-rate">N/A</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Tasa de Falsos Negativos</h3>
-                        <p id="fn-rate">N/A</p>
+            <!-- API Selector + Individual Stats -->
+            <div class="section fade-in">
+                <div class="section-header">
+                    <h2 class="section-title" id="api-name-title">Resultados Individuales</h2>
+                    <div class="api-selector">
+                        <label for="api-selector">API:</label>
+                        <select id="api-selector"></select>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <div class="chart">
+
+                <div class="stats-grid" id="individual-stats-grid">
+                    <div class="stat-card info">
+                        <div class="stat-label">Tiempo Promedio</div>
+                        <div class="stat-value" id="avg-time">—</div>
+                        <div class="stat-sub">segundos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Tiempo Máximo</div>
+                        <div class="stat-value" id="max-time">—</div>
+                        <div class="stat-sub">segundos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Tiempo Mínimo</div>
+                        <div class="stat-value" id="min-time">—</div>
+                        <div class="stat-sub">segundos</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-label">Falsos Positivos</div>
+                        <div class="stat-value" id="fp-rate">—</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">Falsos Negativos</div>
+                        <div class="stat-value" id="fn-rate">—</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-wrapper">
                         <canvas id="classificationChart"></canvas>
                     </div>
+                    <div class="chart-wrapper">
+                        <canvas id="durationHistogram"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <!-- Sección de Comparación -->
-            <div id="comparison-section">
-                <h2>Comparación de APIs</h2>
-                <div class="chart-container">
-                    <div class="chart">
+            <!-- Comparison Charts -->
+            <div class="section fade-in">
+                <div class="section-header">
+                    <h2 class="section-title">Comparación de APIs</h2>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-wrapper">
                         <canvas id="comparisonChart-performance"></canvas>
                     </div>
-                    <div class="chart">
+                    <div class="chart-wrapper">
                         <canvas id="comparisonChart-accuracy"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- Sección de Calculadora de Costos -->
-            <div id="cost-calculator-section">
-                <h2>Calculadora de Costos Estimados</h2>
+            <!-- Cost Calculator -->
+            <div class="section fade-in">
+                <div class="section-header">
+                    <h2 class="section-title">Calculadora de Costos</h2>
+                </div>
                 <div class="calculator-form">
-                    <label for="price-per-request">Precio por Solicitud ($):</label>
+                    <label for="price-per-request" style="font-size:14px;color:var(--text-secondary)">Precio por solicitud ($):</label>
                     <input type="number" id="price-per-request" step="0.0001" placeholder="Ej: 0.002">
-                    <button id="calculate-cost-btn">Calcular</button>
-                    <p>Costo Estimado: <strong id="estimated-cost">$0.00</strong></p>
+                    <button class="btn btn-primary" id="calculate-cost-btn">Calcular</button>
+                    <span class="cost-result">Costo: <strong id="estimated-cost">$0.00</strong></span>
+                </div>
+            </div>
+
+            <!-- Detail Table -->
+            <div class="section fade-in">
+                <div class="section-header">
+                    <h2 class="section-title">Detalle por Email</h2>
+                    <button class="btn" id="export-csv-btn">📥 Exportar CSV</button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="detail-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Duración (s)</th>
+                                <th>Clasificación</th>
+                                <th>Razón</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-table-body"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -143,27 +527,74 @@
         let fullData = {};
         let activeCharts = {};
 
-        document.getElementById('load-data-btn').addEventListener('click', () => {
-            fetch('results.json')
-                .then(response => {
-                    if (!response.ok) throw new Error("No se pudo cargar 'results.json'.");
-                    return response.json();
-                })
-                .then(data => {
-                    fullData = data;
-                    document.getElementById('dashboard-content').style.display = 'block';
-                    document.getElementById('load-data-btn').style.display = 'none';
-                    initializeDashboard();
-                })
-                .catch(error => alert(error.message));
+        // ── Theme Toggle ──
+        const themeToggle = document.getElementById('theme-toggle');
+        const savedTheme = localStorage.getItem('cronoscore-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        themeToggle.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('cronoscore-theme', next);
+            themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+            // Re-render charts with new theme colors
+            if (Object.keys(fullData).length > 0) {
+                const selector = document.getElementById('api-selector');
+                if (selector.value) updateIndividualStats(selector.value);
+                generateComparisonCharts();
+            }
         });
 
+        // ── File Loading (Drag & Drop + Click) ──
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) loadFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) loadFile(file);
+        });
+
+        function loadFile(file) {
+            if (!file.name.endsWith('.json')) {
+                alert('Por favor seleccioná un archivo .json');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    fullData = JSON.parse(e.target.result);
+                    dropZone.classList.add('hidden');
+                    document.getElementById('dashboard-content').classList.remove('hidden');
+                    initializeDashboard();
+                } catch (err) {
+                    alert('Error al parsear el archivo JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ── Dashboard Initialization ──
         function initializeDashboard() {
+            // Global summary
+            document.getElementById('total-apis').textContent = fullData.global_summary.total_apis_tested;
+            document.getElementById('total-emails').textContent = fullData.global_summary.total_emails_per_api;
+
             const apiSelector = document.getElementById('api-selector');
             const apiResults = fullData.individual_api_results;
             const apiNames = Object.keys(apiResults);
 
-            // Llenar selector
+            apiSelector.innerHTML = '';
             apiNames.forEach(name => {
                 const option = document.createElement('option');
                 option.value = name;
@@ -171,91 +602,218 @@
                 apiSelector.appendChild(option);
             });
 
-            // Evento para cambiar de API
-            apiSelector.addEventListener('change', (e) => {
-                updateIndividualStats(e.target.value);
-            });
+            apiSelector.addEventListener('change', (e) => updateIndividualStats(e.target.value));
 
-            // Cargar datos iniciales
-            if (apiNames.length > 0) {
-                updateIndividualStats(apiNames[0]);
-            }
+            if (apiNames.length > 0) updateIndividualStats(apiNames[0]);
 
             generateComparisonCharts();
             setupCostCalculator();
         }
 
+        // ── Individual Stats ──
         function updateIndividualStats(apiName) {
             const data = fullData.individual_api_results[apiName];
             if (!data) return;
 
-            document.getElementById('api-name-title').textContent = `Resultados para: ${apiName}`;
+            document.getElementById('api-name-title').textContent = `Resultados: ${apiName}`;
             document.getElementById('avg-time').textContent = data.performance.average_response_time.toFixed(4);
+            document.getElementById('max-time').textContent = data.performance.max_response_time.toFixed(4);
+            document.getElementById('min-time').textContent = data.performance.min_response_time.toFixed(4);
             document.getElementById('fp-rate').textContent = `${data.accuracy.false_positive_rate_percent.toFixed(2)}%`;
             document.getElementById('fn-rate').textContent = `${data.accuracy.false_negative_rate_percent.toFixed(2)}%`;
 
-            // Gráfico de Clasificación
-            const classificationData = data.accuracy.classification_counts;
+            // Classification Doughnut
+            const classData = data.accuracy.classification_counts;
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#e2e8f0' : '#374151';
+
             renderChart('classificationChart', 'doughnut', {
-                labels: Object.keys(classificationData),
+                labels: Object.keys(classData),
                 datasets: [{
-                    data: Object.values(classificationData),
-                    backgroundColor: ['#2ecc71', '#e74c3c', '#f1c40f', '#3498db', '#95a5a6']
+                    data: Object.values(classData),
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#6b7280'],
+                    borderWidth: 0,
                 }]
+            }, {
+                plugins: {
+                    title: { display: true, text: 'Clasificación de Resultados', color: textColor, font: { size: 14, weight: 600 } },
+                    legend: { labels: { color: textColor, font: { size: 12 } } }
+                }
+            });
+
+            // Duration Histogram
+            if (data.details && data.details.length > 0) {
+                const durations = data.details.filter(r => r.duration).map(r => r.duration);
+                const bins = buildHistogram(durations, 10);
+
+                renderChart('durationHistogram', 'bar', {
+                    labels: bins.labels,
+                    datasets: [{
+                        label: 'Cantidad de requests',
+                        data: bins.counts,
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                }, {
+                    plugins: {
+                        title: { display: true, text: 'Distribución de Tiempos de Respuesta', color: textColor, font: { size: 14, weight: 600 } },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Tiempo (s)', color: textColor }, ticks: { color: textColor } },
+                        y: { title: { display: true, text: 'Cantidad', color: textColor }, ticks: { color: textColor, precision: 0 } }
+                    }
+                });
+            }
+
+            // Detail Table
+            populateDetailTable(data.details || []);
+        }
+
+        function buildHistogram(values, numBins) {
+            if (values.length === 0) return { labels: [], counts: [] };
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = max - min || 1;
+            const binSize = range / numBins;
+            const counts = new Array(numBins).fill(0);
+            const labels = [];
+
+            for (let i = 0; i < numBins; i++) {
+                const start = min + i * binSize;
+                const end = start + binSize;
+                labels.push(`${start.toFixed(3)}`);
+                values.forEach(v => {
+                    if (v >= start && (i === numBins - 1 ? v <= end : v < end)) counts[i]++;
+                });
+            }
+            return { labels, counts };
+        }
+
+        // ── Detail Table ──
+        function populateDetailTable(details) {
+            const tbody = document.getElementById('detail-table-body');
+            tbody.innerHTML = '';
+
+            details.forEach(item => {
+                const tr = document.createElement('tr');
+                const badgeClass = getBadgeClass(item.classification);
+                tr.innerHTML = `
+                    <td>${item.email || '—'}</td>
+                    <td>${item.duration ? item.duration.toFixed(4) : '—'}</td>
+                    <td><span class="badge ${badgeClass}">${item.classification}</span></td>
+                    <td>${item.response_reason || item.error_message || '—'}</td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
+        function getBadgeClass(classification) {
+            if (classification.includes('Valido considerado valido')) return 'badge-success';
+            if (classification.includes('Invalido considerado invalido')) return 'badge-success';
+            if (classification.includes('Invalido considerado valido')) return 'badge-danger';
+            if (classification.includes('Valido considerado invalido')) return 'badge-warning';
+            return 'badge-info';
+        }
+
+        // ── Comparison Charts ──
         function generateComparisonCharts() {
             const apiResults = fullData.individual_api_results;
             const apiNames = Object.keys(apiResults);
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#e2e8f0' : '#374151';
+            const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
 
-            // Datos para gráficos
-            const avgTimes = apiNames.map(name => apiResults[name].performance.average_response_time);
-            const fpRates = apiNames.map(name => apiResults[name].accuracy.false_positive_rate_percent);
-            const fnRates = apiNames.map(name => apiResults[name].accuracy.false_negative_rate_percent);
+            const avgTimes = apiNames.map(n => apiResults[n].performance.average_response_time);
+            const fpRates = apiNames.map(n => apiResults[n].accuracy.false_positive_rate_percent);
+            const fnRates = apiNames.map(n => apiResults[n].accuracy.false_negative_rate_percent);
 
-            // Gráfico de Rendimiento
             renderChart('comparisonChart-performance', 'bar', {
                 labels: apiNames,
                 datasets: [{
-                    label: 'Tiempo Promedio de Respuesta (s)',
+                    label: 'Tiempo Promedio (s)',
                     data: avgTimes,
-                    backgroundColor: '#3498db'
+                    backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                    borderColor: '#6366f1',
+                    borderWidth: 1,
+                    borderRadius: 6,
                 }]
+            }, {
+                plugins: { title: { display: true, text: 'Rendimiento por API', color: textColor, font: { size: 14, weight: 600 } }, legend: { labels: { color: textColor } } },
+                scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor }, grid: { color: gridColor } } }
             });
 
-            // Gráfico de Precisión
             renderChart('comparisonChart-accuracy', 'bar', {
                 labels: apiNames,
                 datasets: [
-                    { label: 'Falsos Positivos (%)', data: fpRates, backgroundColor: '#e74c3c' },
-                    { label: 'Falsos Negativos (%)', data: fnRates, backgroundColor: '#f1c40f' }
+                    { label: 'Falsos Positivos (%)', data: fpRates, backgroundColor: 'rgba(239, 68, 68, 0.7)', borderColor: '#ef4444', borderWidth: 1, borderRadius: 6 },
+                    { label: 'Falsos Negativos (%)', data: fnRates, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 6 },
                 ]
+            }, {
+                plugins: { title: { display: true, text: 'Precisión por API', color: textColor, font: { size: 14, weight: 600 } }, legend: { labels: { color: textColor } } },
+                scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor }, grid: { color: gridColor } } }
             });
         }
 
+        // ── Cost Calculator ──
         function setupCostCalculator() {
-            const calculateBtn = document.getElementById('calculate-cost-btn');
-            calculateBtn.addEventListener('click', () => {
-                const pricePerRequest = parseFloat(document.getElementById('price-per-request').value);
-                const totalRequests = fullData.global_summary.total_emails_per_api;
+            document.getElementById('calculate-cost-btn').addEventListener('click', () => {
+                const price = parseFloat(document.getElementById('price-per-request').value);
+                const total = fullData.global_summary.total_emails_per_api;
 
-                if (isNaN(pricePerRequest) || pricePerRequest < 0) {
-                    alert("Por favor, ingrese un precio válido.");
+                if (isNaN(price) || price < 0) {
+                    alert('Por favor, ingresá un precio válido.');
                     return;
                 }
 
-                const estimatedCost = totalRequests * pricePerRequest;
-                document.getElementById('estimated-cost').textContent = `$${estimatedCost.toFixed(2)}`;
+                const cost = total * price;
+                document.getElementById('estimated-cost').textContent = `$${cost.toFixed(4)}`;
             });
         }
 
-        function renderChart(canvasId, type, data) {
-            if (activeCharts[canvasId]) {
-                activeCharts[canvasId].destroy();
-            }
+        // ── CSV Export ──
+        document.getElementById('export-csv-btn')?.addEventListener('click', () => {
+            const apiName = document.getElementById('api-selector').value;
+            const data = fullData.individual_api_results[apiName];
+            if (!data || !data.details) return;
+
+            const headers = ['Email', 'Duration (s)', 'Classification', 'Reason/Error'];
+            const rows = data.details.map(d => [
+                d.email || '',
+                d.duration ? d.duration.toFixed(4) : '',
+                d.classification || '',
+                d.response_reason || d.error_message || '',
+            ]);
+
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `cronoscore_${apiName}_results.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // ── Chart Renderer ──
+        function renderChart(canvasId, type, data, extraOptions = {}) {
+            if (activeCharts[canvasId]) activeCharts[canvasId].destroy();
             const ctx = document.getElementById(canvasId).getContext('2d');
-            activeCharts[canvasId] = new Chart(ctx, { type, data });
+            activeCharts[canvasId] = new Chart(ctx, {
+                type,
+                data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    ...extraOptions
+                }
+            });
         }
     </script>
 </body>

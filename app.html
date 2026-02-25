@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CronoScore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #f0f2f5;
+            --bg-card: #ffffff;
+            --bg-card-hover: #fafbfc;
+            --bg-input: #f8f9fa;
+            --bg-sidebar: #1e293b;
+            --bg-sidebar-hover: #334155;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --text-sidebar: #cbd5e1;
+            --text-sidebar-active: #ffffff;
+            --border: #e5e7eb;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: rgba(99, 102, 241, 0.1);
+            --success: #10b981;
+            --success-light: rgba(16, 185, 129, 0.1);
+            --danger: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.1);
+            --warning: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.1);
+            --info: #3b82f6;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.2s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #283548;
+            --bg-input: #334155;
+            --bg-sidebar: #0b1120;
+            --bg-sidebar-hover: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --accent-light: rgba(129, 140, 248, 0.15);
+            --success-light: rgba(16, 185, 129, 0.15);
+            --danger-light: rgba(239, 68, 68, 0.15);
+            --warning-light: rgba(245, 158, 11, 0.15);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 220px;
+            min-width: 220px;
+            background: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            transition: background var(--transition);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 24px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 12px;
+        }
+
+        .sidebar-brand svg {
+            width: 24px;
+            height: 24px;
+            stroke: #818cf8;
+        }
+
+        .nav-items {
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--text-sidebar);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+            transition: all var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--bg-sidebar-hover);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: var(--bg-sidebar-hover);
+            color: var(--text-sidebar-active);
+            border-left-color: var(--accent);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .theme-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-sidebar);
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            width: 100%;
+            transition: all var(--transition);
+        }
+
+        .theme-btn:hover {
+            background: var(--bg-sidebar-hover);
+            color: white;
+        }
+
+        /* ── Main Content ── */
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 32px;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* ── Form Elements ── */
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color var(--transition);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            padding: 9px 20px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .btn-success:hover {
+            opacity: 0.9;
+            color: white;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-light);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ── Stats Grid ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .stat-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .stat-card.success .stat-value {
+            color: var(--success);
+        }
+
+        .stat-card.danger .stat-value {
+            color: var(--danger);
+        }
+
+        .stat-card.warning .stat-value {
+            color: var(--warning);
+        }
+
+        .stat-card.info .stat-value {
+            color: var(--info);
+        }
+
+        /* ── Charts ── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .chart-card canvas {
+            max-height: 300px;
+        }
+
+        /* ── Table ── */
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th,
+        td {
+            padding: 9px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-input);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover td {
+            background: var(--accent-light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: var(--success-light);
+            color: #059669;
+        }
+
+        .badge-danger {
+            background: var(--danger-light);
+            color: #dc2626;
+        }
+
+        .badge-warning {
+            background: var(--warning-light);
+            color: #d97706;
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+
+        [data-theme="dark"] .badge-success {
+            color: #34d399;
+        }
+
+        [data-theme="dark"] .badge-danger {
+            color: #f87171;
+        }
+
+        [data-theme="dark"] .badge-warning {
+            color: #fbbf24;
+        }
+
+        [data-theme="dark"] .badge-info {
+            color: #60a5fa;
+        }
+
+        /* ── Execute Page ── */
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 28px;
+            background: var(--bg-input);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #818cf8);
+            border-radius: 14px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            min-width: 40px;
+        }
+
+        .log-box {
+            margin-top: 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            max-height: 280px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .log-entry {
+            padding: 2px 0;
+        }
+
+        .log-entry.success {
+            color: var(--success);
+        }
+
+        .log-entry.error {
+            color: var(--danger);
+        }
+
+        /* ── API Config Cards ── */
+        .api-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all var(--transition);
+        }
+
+        .api-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .api-card-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .rule-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr 40px;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: end;
+        }
+
+        .rule-row .btn-remove {
+            padding: 8px;
+            min-width: 36px;
+            justify-content: center;
+        }
+
+        /* ── API Selector in results ── */
+        .api-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .api-selector select {
+            width: auto;
+            min-width: 180px;
+        }
+
+        /* ── Cost Calculator ── */
+        .calculator-form {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .calculator-form input {
+            width: 150px;
+        }
+
+        .cost-result {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        /* ── Response Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.15s ease;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 640px;
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .modal-header .modal-email {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-left: 8px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-body pre {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0;
+        }
+
+        .btn-view {
+            padding: 4px 10px;
+            font-size: 11px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all var(--transition);
+        }
+
+        .btn-view:hover {
+            background: var(--accent);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+            </svg>
+            CronoScore
+        </div>
+        <nav class="nav-items">
+            <div class="nav-item active" data-page="config">
+                <span class="nav-icon">⚙️</span> Configuración
+            </div>
+            <div class="nav-item" data-page="execute">
+                <span class="nav-icon">▶️</span> Ejecutar
+            </div>
+            <div class="nav-item" data-page="results">
+                <span class="nav-icon">📊</span> Resultados
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="theme-btn" id="theme-toggle">
+                <span id="theme-icon">🌙</span> <span id="theme-label">Modo oscuro</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- ═══ CONFIG PAGE ═══ -->
+        <div class="page active" id="page-config">
+            <div class="page-header">
+                <h1>⚙️ Configuración</h1>
+                <p>Configurá las APIs a probar y las listas de emails.</p>
+            </div>
+
+            <!-- API Configs -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">APIs a Probar</span>
+                    <button class="btn btn-sm btn-primary" onclick="addApiCard()">+ Agregar API</button>
+                </div>
+                <div id="api-configs-container"></div>
+            </div>
+
+            <!-- Emails -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">✅ Emails Válidos</span></div>
+                    <textarea id="valid-emails" placeholder="Un email por línea..."></textarea>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title">❌ Emails Inválidos</span></div>
+                    <textarea id="invalid-emails" placeholder="Un email por línea..."></textarea>
+                </div>
+            </div>
+
+            <div style="margin-top:16px; display:flex; gap:12px;">
+                <button class="btn btn-success" onclick="saveAll()">💾 Guardar Todo</button>
+                <span id="save-status" style="font-size:13px; color:var(--success); display:none; align-self:center;">✓
+                    Guardado correctamente</span>
+            </div>
+        </div>
+
+        <!-- ═══ EXECUTE PAGE ═══ -->
+        <div class="page" id="page-execute">
+            <div class="page-header">
+                <h1>▶️ Ejecutar Pruebas</h1>
+                <p>Lanzá las pruebas contra las APIs configuradas.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="card-title">Parámetros de Ejecución</span></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Requests por segundo (RPS)</label>
+                        <input type="number" id="rps-input" value="16" min="1" max="100">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="run-btn" onclick="startTests()"
+                    style="font-size:15px; padding:12px 32px;">
+                    ▶️ Iniciar Pruebas
+                </button>
+            </div>
+
+            <div class="card" id="progress-card" style="display:none;">
+                <div class="card-header"><span class="card-title" id="progress-title">Ejecutando...</span></div>
+                <div class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-fill" style="width:0%">0%</div>
+                    </div>
+                </div>
+                <div class="log-box" id="log-box"></div>
+            </div>
+        </div>
+
+        <!-- ═══ RESULTS PAGE ═══ -->
+        <div class="page" id="page-results">
+            <div class="page-header">
+                <h1>📊 Resultados</h1>
+                <p>Visualizá las estadísticas y comparaciones entre APIs.</p>
+            </div>
+
+            <div id="results-empty" class="card">
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>No hay resultados aún</h3>
+                    <p>Ejecutá las pruebas desde la pestaña "Ejecutar" para ver los resultados aquí.</p>
+                </div>
+            </div>
+
+            <div id="results-content" style="display:none;">
+                <!-- Global stats -->
+                <div class="stats-grid" id="global-stats-grid">
+                    <div class="stat-card info">
+                        <div class="stat-label">APIs Probadas</div>
+                        <div class="stat-value" id="r-total-apis">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Emails por API</div>
+                        <div class="stat-value" id="r-total-emails">0</div>
+                    </div>
+                </div>
+
+                <!-- Individual API -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title" id="r-api-title">Resultados Individuales</span>
+                        <div class="api-selector">
+                            <label for="r-api-selector" style="margin:0">API:</label>
+                            <select id="r-api-selector"></select>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card info">
+                            <div class="stat-label">Tiempo Promedio</div>
+                            <div class="stat-value" id="r-avg-time">—</div>
+                            <div class="stat-sub">segundos</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Tiempo Máx</div>
+                            <div class="stat-value" id="r-max-time">—</div>
+                            <div class="stat-sub">segundos</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Tiempo Mín</div>
+                            <div class="stat-value" id="r-min-time">—</div>
+                            <div class="stat-sub">segundos</div>
+                        </div>
+                        <div class="stat-card danger">
+                            <div class="stat-label">Falsos Positivos</div>
+                            <div class="stat-value" id="r-fp">—</div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-label">Falsos Negativos</div>
+                            <div class="stat-value" id="r-fn">—</div>
+                        </div>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-card"><canvas id="chart-classification"></canvas></div>
+                        <div class="chart-card"><canvas id="chart-histogram"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Comparison -->
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Comparación de APIs</span></div>
+                    <div class="charts-grid">
+                        <div class="chart-card"><canvas id="chart-comp-perf"></canvas></div>
+                        <div class="chart-card"><canvas id="chart-comp-acc"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Cost Calculator -->
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Calculadora de Costos</span></div>
+                    <div class="calculator-form">
+                        <label style="margin:0">Precio por solicitud ($):</label>
+                        <input type="number" id="r-price" step="0.0001" placeholder="0.002" style="width:150px">
+                        <button class="btn btn-primary" onclick="calcCost()">Calcular</button>
+                        <span class="cost-result">Costo: <strong id="r-cost">$0.00</strong></span>
+                    </div>
+                </div>
+
+                <!-- Detail Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Detalle por Email</span>
+                        <button class="btn btn-sm" onclick="exportCsv()">📥 Exportar CSV</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Duración (s)</th>
+                                    <th>Clasificación</th>
+                                    <th>Razón</th>
+                                    <th style="width:70px">Respuesta</th>
+                                </tr>
+                            </thead>
+                            <tbody id="r-detail-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Response Modal -->
+    <div class="modal-overlay hidden" id="response-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>🔍 Respuesta API <span class="modal-email" id="modal-email"></span></h3>
+                <button class="modal-close" onclick="closeResponseModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <pre id="modal-json"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── State ──
+        let resultsData = null;
+        let activeCharts = {};
+        let progressInterval = null;
+        let apiConfigs = [];
+
+        // ── Navigation ──
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                item.classList.add('active');
+                document.getElementById(`page-${item.dataset.page}`).classList.add('active');
+
+                if (item.dataset.page === 'results' && !resultsData) loadResults();
+            });
+        });
+
+        // ── Theme ──
+        const savedTheme = localStorage.getItem('cronoscore-theme') || 'light';
+        applyTheme(savedTheme);
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+            localStorage.setItem('cronoscore-theme', next);
+        });
+        function applyTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            document.getElementById('theme-icon').textContent = t === 'dark' ? '☀️' : '🌙';
+            document.getElementById('theme-label').textContent = t === 'dark' ? 'Modo claro' : 'Modo oscuro';
+        }
+
+        // ── Wait for pywebview API ──
+        window.addEventListener('pywebviewready', () => {
+            loadConfigFromPython();
+            loadEmailsFromPython();
+        });
+
+        // ═══ CONFIG ═══
+        async function loadConfigFromPython() {
+            const res = await window.pywebview.api.load_config();
+            if (res.success) {
+                apiConfigs = res.data;
+                renderApiCards();
+            }
+        }
+
+        async function loadEmailsFromPython() {
+            const valid = await window.pywebview.api.load_emails('valid');
+            const invalid = await window.pywebview.api.load_emails('invalid');
+            if (valid.success) document.getElementById('valid-emails').value = valid.data;
+            if (invalid.success) document.getElementById('invalid-emails').value = invalid.data;
+        }
+
+        function renderApiCards() {
+            const container = document.getElementById('api-configs-container');
+            container.innerHTML = '';
+            apiConfigs.forEach((api, idx) => {
+                const card = document.createElement('div');
+                card.className = 'api-card';
+                card.innerHTML = `
+                    <div class="api-card-header">
+                        <span class="api-card-name">${api.name || 'Nueva API'}</span>
+                        <button class="btn btn-sm btn-danger" onclick="removeApi(${idx})">🗑️ Eliminar</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Nombre</label><input value="${esc(api.name || '')}" onchange="apiConfigs[${idx}].name=this.value; updateApiCardName(${idx}, this.value)"></div>
+                        <div class="form-group"><label>Endpoint</label><input value="${esc(api.endpoint || '')}" onchange="apiConfigs[${idx}].endpoint=this.value"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>API Key</label><input value="${esc(api.api_key || '')}" onchange="apiConfigs[${idx}].api_key=this.value" type="password"></div>
+                        <div class="form-group"><label>Método HTTP</label>
+                            <select onchange="apiConfigs[${idx}].method=this.value">
+                                <option value="GET" ${api.method === 'GET' ? 'selected' : ''}>GET</option>
+                                <option value="POST" ${api.method === 'POST' ? 'selected' : ''}>POST</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Nombre del Parámetro</label><input value="${esc(api.param_name || 'email')}" onchange="apiConfigs[${idx}].param_name=this.value"></div>
+                        <div class="form-group"><label>Response Path</label><input value="${esc(api.response_path || 'data')}" onchange="apiConfigs[${idx}].response_path=this.value"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Timeout (s)</label><input type="number" value="${api.timeout || 30}" onchange="apiConfigs[${idx}].timeout=parseInt(this.value)"></div>
+                        <div></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Reglas de Validación</label>
+                        <div id="rules-${idx}"></div>
+                        <button class="btn btn-sm" onclick="addRule(${idx})" style="margin-top:8px;">+ Agregar Regla</button>
+                    </div>
+                `;
+                container.appendChild(card);
+                renderRules(idx);
+            });
+        }
+
+        function renderRules(apiIdx) {
+            const container = document.getElementById(`rules-${apiIdx}`);
+            const rules = apiConfigs[apiIdx].validation_rules || [];
+            container.innerHTML = '';
+            rules.forEach((rule, rIdx) => {
+                const row = document.createElement('div');
+                row.className = 'rule-row';
+                row.innerHTML = `
+                    <div><input placeholder="Campo (ej: score)" value="${esc(rule.field || '')}" onchange="apiConfigs[${apiIdx}].validation_rules[${rIdx}].field=this.value"></div>
+                    <div>
+                        <select onchange="apiConfigs[${apiIdx}].validation_rules[${rIdx}].operator=this.value">
+                            ${['>=', '<=', '==', '!=', '>', '<', 'in'].map(o => `<option value="${o}" ${rule.operator === o ? 'selected' : ''}>${o}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div><input placeholder="Valor" value="${esc(typeof rule.value === 'object' ? JSON.stringify(rule.value) : String(rule.value || ''))}" onchange="updateRuleValue(${apiIdx},${rIdx},this.value)"></div>
+                    <button class="btn btn-sm btn-danger rule-row btn-remove" onclick="removeRule(${apiIdx},${rIdx})">×</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function updateRuleValue(apiIdx, ruleIdx, val) {
+            try { apiConfigs[apiIdx].validation_rules[ruleIdx].value = JSON.parse(val); }
+            catch { apiConfigs[apiIdx].validation_rules[ruleIdx].value = val; }
+        }
+
+        function addRule(apiIdx) {
+            if (!apiConfigs[apiIdx].validation_rules) apiConfigs[apiIdx].validation_rules = [];
+            apiConfigs[apiIdx].validation_rules.push({ field: '', operator: '==', value: '' });
+            renderRules(apiIdx);
+        }
+
+        function removeRule(apiIdx, ruleIdx) {
+            apiConfigs[apiIdx].validation_rules.splice(ruleIdx, 1);
+            renderRules(apiIdx);
+        }
+
+        function addApiCard() {
+            apiConfigs.push({ name: 'Nueva API', endpoint: '', api_key: '', method: 'GET', param_name: 'email', response_path: 'data', timeout: 30, headers: {}, validation_rules: [] });
+            renderApiCards();
+        }
+
+        function removeApi(idx) {
+            apiConfigs.splice(idx, 1);
+            renderApiCards();
+        }
+
+        function updateApiCardName(idx, name) {
+            const cards = document.querySelectorAll('.api-card-name');
+            if (cards[idx]) cards[idx].textContent = name || 'Nueva API';
+        }
+
+        async function saveAll() {
+            const configRes = await window.pywebview.api.save_config(JSON.stringify(apiConfigs));
+            const validRes = await window.pywebview.api.save_emails('valid', document.getElementById('valid-emails').value);
+            const invalidRes = await window.pywebview.api.save_emails('invalid', document.getElementById('invalid-emails').value);
+
+            const status = document.getElementById('save-status');
+            if (configRes.success && validRes.success && invalidRes.success) {
+                status.textContent = '✓ Guardado correctamente';
+                status.style.color = 'var(--success)';
+            } else {
+                status.textContent = '✗ Error al guardar';
+                status.style.color = 'var(--danger)';
+            }
+            status.style.display = 'inline';
+            setTimeout(() => status.style.display = 'none', 3000);
+        }
+
+        function esc(s) { return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+        // ═══ EXECUTE ═══
+        async function startTests() {
+            const rps = parseInt(document.getElementById('rps-input').value) || 16;
+            const runBtn = document.getElementById('run-btn');
+            runBtn.disabled = true;
+            runBtn.textContent = '⏳ Ejecutando...';
+
+            document.getElementById('progress-card').style.display = 'block';
+            document.getElementById('log-box').innerHTML = '';
+            document.getElementById('progress-fill').style.width = '0%';
+            document.getElementById('progress-fill').textContent = '0%';
+
+            const res = await window.pywebview.api.run_tests(rps);
+            if (!res.success) {
+                addLogEntry(res.error, 'error');
+                runBtn.disabled = false;
+                runBtn.textContent = '▶️ Iniciar Pruebas';
+                return;
+            }
+
+            // Poll progress
+            let lastLogCount = 0;
+            progressInterval = setInterval(async () => {
+                const p = await window.pywebview.api.get_progress();
+                const pct = p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0;
+                document.getElementById('progress-fill').style.width = pct + '%';
+                document.getElementById('progress-fill').textContent = pct + '%';
+                document.getElementById('progress-title').textContent = p.current_api ? `Probando: ${p.current_api}` : 'Ejecutando...';
+
+                // New logs
+                if (p.log && p.log.length > lastLogCount) {
+                    for (let i = lastLogCount; i < p.log.length; i++) {
+                        const msg = p.log[i];
+                        const cls = msg.startsWith('✓') ? 'success' : msg.startsWith('Error') ? 'error' : '';
+                        addLogEntry(msg, cls);
+                    }
+                    lastLogCount = p.log.length;
+                }
+
+                if (p.status === 'completed' || p.status === 'error') {
+                    clearInterval(progressInterval);
+                    runBtn.disabled = false;
+                    runBtn.textContent = '▶️ Iniciar Pruebas';
+                    document.getElementById('progress-title').textContent = p.status === 'completed' ? '✅ Completado' : '❌ Error';
+
+                    if (p.status === 'completed') {
+                        // Auto-load results
+                        resultsData = null;
+                        addLogEntry('Resultados listos. Andá a la pestaña "Resultados" para verlos.', 'success');
+                    }
+                }
+            }, 500);
+        }
+
+        function addLogEntry(msg, cls = '') {
+            const log = document.getElementById('log-box');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (cls ? ` ${cls}` : '');
+            entry.textContent = msg;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // ═══ RESULTS ═══
+        async function loadResults() {
+            const res = await window.pywebview.api.get_last_results();
+            if (!res.success) {
+                document.getElementById('results-empty').style.display = 'block';
+                document.getElementById('results-content').style.display = 'none';
+                return;
+            }
+
+            resultsData = res.data;
+            document.getElementById('results-empty').style.display = 'none';
+            document.getElementById('results-content').style.display = 'block';
+
+            document.getElementById('r-total-apis').textContent = resultsData.global_summary.total_apis_tested;
+            document.getElementById('r-total-emails').textContent = resultsData.global_summary.total_emails_per_api;
+
+            const selector = document.getElementById('r-api-selector');
+            const apiNames = Object.keys(resultsData.individual_api_results);
+            selector.innerHTML = '';
+            apiNames.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; selector.appendChild(o); });
+            selector.onchange = () => showApiResults(selector.value);
+
+            if (apiNames.length > 0) showApiResults(apiNames[0]);
+            renderComparisonCharts();
+        }
+
+        function showApiResults(name) {
+            const d = resultsData.individual_api_results[name];
+            if (!d) return;
+            document.getElementById('r-api-title').textContent = `Resultados: ${name}`;
+            document.getElementById('r-avg-time').textContent = d.performance.average_response_time.toFixed(4);
+            document.getElementById('r-max-time').textContent = d.performance.max_response_time.toFixed(4);
+            document.getElementById('r-min-time').textContent = d.performance.min_response_time.toFixed(4);
+            document.getElementById('r-fp').textContent = d.accuracy.false_positive_rate_percent.toFixed(2) + '%';
+            document.getElementById('r-fn').textContent = d.accuracy.false_negative_rate_percent.toFixed(2) + '%';
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const txt = isDark ? '#e2e8f0' : '#374151';
+            const grid = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+            // Classification donut
+            const cc = d.accuracy.classification_counts;
+            renderChart('chart-classification', 'doughnut', {
+                labels: Object.keys(cc), datasets: [{ data: Object.values(cc), backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#6b7280'], borderWidth: 0 }]
+            }, { plugins: { title: { display: true, text: 'Clasificación', color: txt, font: { size: 14, weight: 600 } }, legend: { labels: { color: txt, font: { size: 11 } } } } });
+
+            // Duration histogram
+            if (d.details && d.details.length) {
+                const durs = d.details.filter(r => r.duration).map(r => r.duration);
+                const bins = buildHistogram(durs, 10);
+                renderChart('chart-histogram', 'bar', {
+                    labels: bins.labels, datasets: [{ label: 'Cantidad', data: bins.counts, backgroundColor: 'rgba(99,102,241,0.6)', borderColor: '#6366f1', borderWidth: 1, borderRadius: 4 }]
+                }, { plugins: { title: { display: true, text: 'Distribución de Tiempos', color: txt, font: { size: 14, weight: 600 } }, legend: { display: false } }, scales: { x: { ticks: { color: txt } }, y: { ticks: { color: txt, precision: 0 }, grid: { color: grid } } } });
+            }
+
+            // Detail table
+            const tbody = document.getElementById('r-detail-tbody');
+            tbody.innerHTML = '';
+            (d.details || []).forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                const bc = getBadgeClass(item.classification);
+                const hasRaw = item.raw_response !== undefined && item.raw_response !== null;
+                const viewBtn = hasRaw
+                    ? `<button class="btn-view" onclick="showRawResponse(${idx})">🔍 Ver</button>`
+                    : '<span style="color:var(--text-muted)">—</span>';
+                tr.innerHTML = `<td>${item.email || '—'}</td><td>${item.duration ? item.duration.toFixed(4) : '—'}</td><td><span class="badge ${bc}">${item.classification}</span></td><td>${item.response_reason || item.error_message || '—'}</td><td>${viewBtn}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderComparisonCharts() {
+            const ar = resultsData.individual_api_results;
+            const names = Object.keys(ar);
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const txt = isDark ? '#e2e8f0' : '#374151';
+            const grid = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+            renderChart('chart-comp-perf', 'bar', {
+                labels: names, datasets: [{ label: 'Tiempo Promedio (s)', data: names.map(n => ar[n].performance.average_response_time), backgroundColor: 'rgba(99,102,241,0.7)', borderColor: '#6366f1', borderWidth: 1, borderRadius: 6 }]
+            }, { plugins: { title: { display: true, text: 'Rendimiento', color: txt, font: { size: 14, weight: 600 } }, legend: { labels: { color: txt } } }, scales: { x: { ticks: { color: txt } }, y: { ticks: { color: txt }, grid: { color: grid } } } });
+
+            renderChart('chart-comp-acc', 'bar', {
+                labels: names, datasets: [
+                    { label: 'Falsos Positivos (%)', data: names.map(n => ar[n].accuracy.false_positive_rate_percent), backgroundColor: 'rgba(239,68,68,0.7)', borderRadius: 6 },
+                    { label: 'Falsos Negativos (%)', data: names.map(n => ar[n].accuracy.false_negative_rate_percent), backgroundColor: 'rgba(245,158,11,0.7)', borderRadius: 6 },
+                ]
+            }, { plugins: { title: { display: true, text: 'Precisión', color: txt, font: { size: 14, weight: 600 } }, legend: { labels: { color: txt } } }, scales: { x: { ticks: { color: txt } }, y: { ticks: { color: txt }, grid: { color: grid } } } });
+        }
+
+        function calcCost() {
+            const price = parseFloat(document.getElementById('r-price').value);
+            if (isNaN(price) || price < 0) { alert('Ingresá un precio válido.'); return; }
+            const total = resultsData.global_summary.total_emails_per_api;
+            document.getElementById('r-cost').textContent = '$' + (total * price).toFixed(4);
+        }
+
+        async function exportCsv() {
+            const name = document.getElementById('r-api-selector').value;
+            const d = resultsData.individual_api_results[name];
+            if (!d || !d.details) return;
+            const res = await window.pywebview.api.export_csv(name, JSON.stringify(d.details));
+            if (res.success) addLogEntry && console.log('CSV exportado: ' + res.path);
+            else if (res.error !== 'Exportación cancelada.') alert(res.error);
+        }
+
+        // ── Helpers ──
+        function buildHistogram(values, n) {
+            if (!values.length) return { labels: [], counts: [] };
+            const min = Math.min(...values), max = Math.max(...values), range = max - min || 1, bs = range / n;
+            const counts = Array(n).fill(0), labels = [];
+            for (let i = 0; i < n; i++) {
+                const s = min + i * bs, e = s + bs;
+                labels.push(s.toFixed(3));
+                values.forEach(v => { if (v >= s && (i === n - 1 ? v <= e : v < e)) counts[i]++; });
+            }
+            return { labels, counts };
+        }
+
+        function getBadgeClass(c) {
+            if (c.includes('Valido considerado valido') || c.includes('Invalido considerado invalido')) return 'badge-success';
+            if (c.includes('Invalido considerado valido')) return 'badge-danger';
+            if (c.includes('Valido considerado invalido')) return 'badge-warning';
+            return 'badge-info';
+        }
+
+        function renderChart(id, type, data, opts = {}) {
+            if (activeCharts[id]) activeCharts[id].destroy();
+            const ctx = document.getElementById(id).getContext('2d');
+            activeCharts[id] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: true, ...opts } });
+        }
+
+        // ── Raw Response Modal ──
+        function showRawResponse(idx) {
+            const sel = document.getElementById('r-api-selector');
+            const apiName = sel.value;
+            const d = resultsData.individual_api_results[apiName];
+            const item = (d.details || [])[idx];
+            if (!item || !item.raw_response) return;
+
+            document.getElementById('modal-email').textContent = item.email;
+            document.getElementById('modal-json').textContent = JSON.stringify(item.raw_response, null, 2);
+            document.getElementById('response-modal').classList.remove('hidden');
+        }
+
+        function closeResponseModal() {
+            document.getElementById('response-modal').classList.add('hidden');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('response-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeResponseModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeResponseModal();
+        });
+    </script>
+</body>
+
+</html>

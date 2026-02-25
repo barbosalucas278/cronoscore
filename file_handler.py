@@ -1,65 +1,38 @@
 
 import os
 import json
+import logging
+from typing import Any
 
-def read_emails_from_file(file_path):
+logger = logging.getLogger(__name__)
+
+
+def read_emails_from_file(file_path: str) -> list[str]:
     """
     Lee una lista de emails desde un archivo, uno por línea.
     Devuelve una lista vacía si el archivo no existe.
     """
     if not os.path.exists(file_path):
-        print(f"Alerta: El archivo {file_path} no fue encontrado.")
+        logger.warning("El archivo '%s' no fue encontrado.", file_path)
         return []
-    with open(file_path, 'r') as f:
-        return [line.strip() for line in f.readlines() if line.strip()]
 
-def save_results_to_json(data, file_path):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        emails = [line.strip() for line in f.readlines() if line.strip()]
+
+    logger.info("Leídos %d emails desde '%s'.", len(emails), file_path)
+    return emails
+
+
+def save_results_to_json(data: dict[str, Any], file_path: str) -> bool:
     """
     Guarda los datos de resultados en un archivo JSON.
+    Retorna True si se guardó correctamente, False si hubo error.
     """
     try:
-        with open(file_path, 'w') as f:
-            json.dump(data, f, indent=4)
-        print(f"Resultados guardados en '{file_path}'.")
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        logger.info("Resultados guardados en '%s'.", file_path)
+        return True
     except IOError as e:
-        print(f"Error al guardar el archivo de resultados: {e}")
-
-if __name__ == '__main__':
-    # Pruebas básicas para el módulo
-
-    # Crear archivos de prueba
-    with open("test_valid.txt", "w") as f:
-        f.write("test1@example.com\n")
-        f.write("test2@example.com\n")
-
-    with open("test_invalid.txt", "w") as f:
-        f.write("test3@example.com\n")
-
-    # Probar la lectura
-    valid_emails = read_emails_from_file("test_valid.txt")
-    print(f"Emails válidos leídos: {valid_emails}")
-    assert len(valid_emails) == 2
-
-    invalid_emails = read_emails_from_file("test_invalid.txt")
-    print(f"Emails inválidos leídos: {invalid_emails}")
-    assert len(invalid_emails) == 1
-
-    non_existent = read_emails_from_file("non_existent.txt")
-    print(f"Emails de archivo no existente: {non_existent}")
-    assert len(non_existent) == 0
-
-    # Probar la escritura
-    test_data = {"summary": {"total": 3}, "details": ["detail1"]}
-    save_results_to_json(test_data, "test_results.json")
-
-    # Verificar que el archivo se escribió correctamente
-    with open("test_results.json", "r") as f:
-        read_data = json.load(f)
-    assert read_data["summary"]["total"] == 3
-    print("Prueba de escritura de JSON exitosa.")
-
-    # Limpiar archivos de prueba
-    os.remove("test_valid.txt")
-    os.remove("test_invalid.txt")
-    os.remove("test_results.json")
-    print("Archivos de prueba eliminados.")
+        logger.error("Error al guardar el archivo de resultados: %s", e)
+        return False

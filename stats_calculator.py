@@ -1,11 +1,23 @@
 
+import logging
 from collections import Counter
+from typing import Any
 
-def calculate_statistics(results, total_valid_source, total_invalid_source, rps, endpoint):
+logger = logging.getLogger(__name__)
+
+
+def calculate_statistics(
+    results: list[dict[str, Any]],
+    total_valid_source: int,
+    total_invalid_source: int,
+    rps: int,
+    endpoint: str,
+) -> dict[str, Any]:
     """
     Calcula y resume las estadísticas de los resultados de la prueba.
     """
     if not results:
+        logger.warning("No hay resultados para procesar.")
         return {
             "summary": {
                 "total_requests": 0,
@@ -22,6 +34,10 @@ def calculate_statistics(results, total_valid_source, total_invalid_source, rps,
     classifications = [r['classification'] for r in results]
     classification_counts = Counter(classifications)
 
+    false_positives = classification_counts.get("Invalido considerado invalido por API", 0)
+    false_negatives = classification_counts.get("Valido considerado invalido por API", 0)
+
+    # NOTE: "Invalido considerado valido" = falso positivo (la API dice válido, pero es inválido)
     false_positives = classification_counts.get("Invalido considerado valido", 0)
     false_negatives = classification_counts.get("Valido considerado invalido", 0)
 
@@ -50,33 +66,9 @@ def calculate_statistics(results, total_valid_source, total_invalid_source, rps,
         "details": results
     }
 
+    logger.info(
+        "Estadísticas calculadas: %d requests, FP=%.2f%%, FN=%.2f%%",
+        len(results), fp_rate, fn_rate
+    )
+
     return output_data
-
-if __name__ == '__main__':
-    # Pruebas para el módulo de estadísticas
-    mock_results = [
-        {'email': 'valid1@test.com', 'duration': 0.1, 'classification': 'Valido considerado valido'},
-        {'email': 'valid2@test.com', 'duration': 0.2, 'classification': 'Valido considerado invalido'},
-        {'email': 'invalid1@test.com', 'duration': 0.15, 'classification': 'Invalido considerado valido'},
-        {'email': 'invalid2@test.com', 'duration': 0.12, 'classification': 'Invalido considerado Invalido'},
-        {'email': 'error@test.com', 'duration': 0.5, 'classification': 'Error'},
-    ]
-
-    total_valid = 2
-    total_invalid = 2
-    rps_limit = 20
-    api_endpoint = "http://fakeapi.com/validate"
-
-    stats = calculate_statistics(mock_results, total_valid, total_invalid, rps_limit, api_endpoint)
-
-    print("Estadísticas Generadas:")
-    import json
-    print(json.dumps(stats, indent=4))
-
-    # Verificaciones
-    assert stats['summary']['total_requests'] == 5
-    assert stats['performance']['max_response_time'] == 0.5
-    assert stats['accuracy']['classification_counts']['Valido considerado invalido'] == 1
-    assert stats['accuracy']['false_positive_rate_percent'] == 50.0
-
-    print("\nPruebas del módulo de estadísticas pasaron exitosamente.")

@@ -99,3 +99,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Project-specific
+execute.txt
+results.json
+
+# PyInstaller
+dist/
+build/
+*.spec

@@ -1,6 +1,7 @@
 
 import unittest
-from statistics import calculate_statistics
+from stats_calculator import calculate_statistics
+
 
 class TestStatistics(unittest.TestCase):
 
@@ -11,7 +12,7 @@ class TestStatistics(unittest.TestCase):
             {'duration': 0.2, 'classification': 'Valido considerado valido'},
             {'duration': 0.15, 'classification': 'Valido considerado invalido'},
             {'duration': 0.3, 'classification': 'Invalido considerado valido'},
-            {'duration': 0.25, 'classification': 'Invalido considerado Invalido'},
+            {'duration': 0.25, 'classification': 'Invalido considerado invalido'},
             {'duration': 0.4, 'classification': 'Error'},
         ]
         self.total_valid = 3
@@ -39,13 +40,13 @@ class TestStatistics(unittest.TestCase):
         self.assertEqual(counts['Valido considerado valido'], 2)
         self.assertEqual(counts['Valido considerado invalido'], 1)
         self.assertEqual(counts['Invalido considerado valido'], 1)
-        self.assertEqual(counts['Invalido considerado Invalido'], 1)
+        self.assertEqual(counts['Invalido considerado invalido'], 1)
         self.assertEqual(counts['Error'], 1)
 
-        # Tasa de Falsos Positivos = (Falsos Positivos / Total de Inválidos Reales) * 100
+        # Tasa de Falsos Positivos = (Invalido considerado valido / Total Inválidos) * 100
         self.assertAlmostEqual(accuracy['false_positive_rate_percent'], (1 / 2) * 100)
 
-        # Tasa de Falsos Negativos = (Falsos Negativos / Total de Válidos Reales) * 100
+        # Tasa de Falsos Negativos = (Valido considerado invalido / Total Válidos) * 100
         self.assertAlmostEqual(accuracy['false_negative_rate_percent'], (1 / 3) * 100)
 
     def test_summary_data(self):
@@ -65,6 +66,7 @@ class TestStatistics(unittest.TestCase):
 
         self.assertEqual(stats['summary']['total_requests'], 0)
         self.assertIn('error', stats['summary'])
+
 
 if __name__ == '__main__':
     unittest.main()
